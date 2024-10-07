@@ -3,16 +3,16 @@
 void WindowManager::DrawGrid(int gridSize, int row, int column, ImVec2 startPos, Camera& camera)
 {
 	for (int x = 0; x < row; ++x) {
-		ImVec2 start = ImVec2(startPos.x, startPos.y + x * gridSize);
-		ImVec2 end = ImVec2(startPos.x + column * gridSize, start.y);
+		ImVec2 start = ImVec2(camera.gridOrigin.x, camera.gridOrigin.y + x * gridSize);
+		ImVec2 end = ImVec2(camera.gridOrigin.x + column * gridSize, start.y);
 		ImGui::GetWindowDrawList()->AddLine(
 			camera.ToWorldPosition(start),
 			camera.ToWorldPosition(end), ImColor(200, 0, 0, 255));
 	}
 
 	for (int y = 0; y < column; ++y) {
-		ImVec2 start = ImVec2(startPos.x + y * gridSize, startPos.y);
-		ImVec2 end = ImVec2(start.x, startPos.y + row * column);
+		ImVec2 start = ImVec2(camera.gridOrigin.x + y * gridSize, camera.gridOrigin.y);
+		ImVec2 end = ImVec2(start.x, camera.gridOrigin.y + row * gridSize);
 		ImGui::GetWindowDrawList()->AddLine(
 			camera.ToWorldPosition(start),
 			camera.ToWorldPosition(end), ImColor(0, 200, 0, 255));
