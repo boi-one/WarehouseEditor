@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-ImVec2 Camera::ToWorldPosition(ImVec2 pos)
+ImVec2 Camera::ToWorldPositionOLD(ImVec2 pos)
 {
     ImVec2 screenPosition;
     screenPosition.x = (pos.x - position.x) * this->zoom;
@@ -8,7 +8,7 @@ ImVec2 Camera::ToWorldPosition(ImVec2 pos)
     return screenPosition;
 }
 
-ImVec2 Camera::ToScreenPosition(ImVec2 pos)
+ImVec2 Camera::ToScreenPositionOLD(ImVec2 pos)
 {
     ImVec2 worldPosition;
     worldPosition.x = (pos.x / this->zoom) + position.x;
@@ -16,7 +16,7 @@ ImVec2 Camera::ToScreenPosition(ImVec2 pos)
     return worldPosition;
 }
 
-ImVec2 Camera::ToWorldPositionNEW(ImVec2 pos)
+ImVec2 Camera::ToWorldPosition(ImVec2 pos)
 {
     ImVec2 screenPosition;
     screenPosition.x = (pos.x * this->zoom) + position.x;
@@ -24,7 +24,7 @@ ImVec2 Camera::ToWorldPositionNEW(ImVec2 pos)
     return screenPosition;
 }
 
-ImVec2 Camera::ToScreenPositionNEW(ImVec2 pos)
+ImVec2 Camera::ToScreenPosition(ImVec2 pos)
 {
     ImVec2 worldPosition;
     worldPosition.x = (pos.x - position.x) / this->zoom;

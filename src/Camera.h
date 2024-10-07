@@ -22,7 +22,7 @@ public:
 	}
 
 	ImVec2 ToWorldPosition(ImVec2 pos);
-	ImVec2 ToWorldPositionNEW(ImVec2 pos);
+	ImVec2 ToWorldPositionOLD(ImVec2 pos);
 	ImVec2 ToScreenPosition(ImVec2 pos);
-	ImVec2 ToScreenPositionNEW(ImVec2 pos);
+	ImVec2 ToScreenPositionOLD(ImVec2 pos);
 };

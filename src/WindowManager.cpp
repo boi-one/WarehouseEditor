@@ -187,13 +187,13 @@ void WindowManager::DrawCanvas()
 	if (ImGui::IsWindowFocused())
 	{
 		if (ImGui::IsKeyDown(ImGuiKey_UpArrow))
-			camera.position.y -= camera.speed / camera.zoom;
-		if (ImGui::IsKeyDown(ImGuiKey_DownArrow))
 			camera.position.y += camera.speed / camera.zoom;
+		if (ImGui::IsKeyDown(ImGuiKey_DownArrow))
+			camera.position.y -= camera.speed / camera.zoom;
 		if (ImGui::IsKeyDown(ImGuiKey_LeftArrow))
-			camera.position.x -= camera.speed / camera.zoom;
-		if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
 			camera.position.x += camera.speed / camera.zoom;
+		if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
+			camera.position.x -= camera.speed / camera.zoom;
 
 		if (io.MouseWheel > 0 && camera.zoom < 3.f)
 			camera.zoom += 0.1f;
@@ -227,19 +227,21 @@ void WindowManager::DrawCanvas()
 
 	if (!showNewLine) mouse.lastPlacedPoint = mouse.liveMousePosition;
 
+
+
 	if (Tools::Magnitude(camera.gridOrigin, camera.position) > 200)
 	{
-		camera.gridOrigin.x = floor(camera.position.x / 100) * 100;
-		camera.gridOrigin.y = floor(camera.position.y / 100) * 100;
+		camera.gridOrigin.x = floor(camera.position.x / 100 * camera.zoom) * 100 * camera.zoom;
+		camera.gridOrigin.y = floor(camera.position.y / 100 * camera.zoom) * 100 * camera.zoom;
 	}
+
+	float gridSize = 100 * camera.zoom;
 
 	//Draw to screen
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	if (grid)
 	{
-		DrawGrid(100, 100, 100, ImVec2(
-			floor(camera.position.x / 100) * 100,
-			floor(camera.position.y / 100) * 100), camera);
+		DrawGrid(100, 100, 100, camera.gridOrigin, camera);
 	}
 
 	for (Layer l : LayerManager::allLayers)
@@ -266,32 +268,30 @@ void WindowManager::DrawCanvas()
 			ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
 
 		//Draw newline
-		if (editMode && showNewLine && ImGui::IsWindowFocused() && !snapping)
+		if (editMode && showNewLine && ImGui::IsWindowFocused())
 		{
-			ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
-			ImVec2 mouseWorldPos = camera.ToScreenPosition(mouse.liveMousePosition);
-			draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
-		}
-		else if (editMode && showNewLine && ImGui::IsWindowFocused() && snapping)
-		{
-			ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
-			ImVec2 mouseWorldPos = camera.ToScreenPosition(mouse.snapPosition);
-			draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
+			if (!snapping)
+			{
+
+				ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
+				ImVec2 mouseWorldPos = camera.ToScreenPosition(mouse.liveMousePosition);
+				draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
+			}
+			else
+			{
+				ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
+				ImVec2 mouseWorldPos = camera.ToScreenPosition(mouse.snapPosition);
+				draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
+			}
 		}
 	}
 
 	if (snapping && editMode) //FIX DE SNAPPPPPIIINGGGGGGG
 	{
 		ImVec2 worldPos = camera.ToWorldPosition(mouse.liveMousePosition);
-		float gridSize = 100 * camera.zoom;
 
-		mouse.snapPosition.x = floor(worldPos.x / (100 * camera.zoom)) * 100 * camera.zoom;
-		mouse.snapPosition.y = floor(worldPos.y / (100 * camera.zoom)) * 100 * camera.zoom;
-
-		/*mouse.snapPosition.x = floor(mouse.liveMousePosition.x * 0.01f) * 100 * camera.zoom;
-		mouse.snapPosition.y = floor(mouse.liveMousePosition.y * 0.01f) * 100 * camera.zoom;*/
-
-		std::cout << camera.ToWorldPosition(mouse.liveMousePosition).x << " " << camera.ToWorldPosition(mouse.liveMousePosition).y << std::endl;
+		mouse.snapPosition.x = floor(worldPos.x / (gridSize)) * gridSize;
+		mouse.snapPosition.y = floor(worldPos.y / (gridSize)) * gridSize;
 
 		draw_list->AddCircleFilled(camera.ToScreenPosition(mouse.snapPosition), 10.f, ImColor(255, 0, 255, 255), 12);
 	}
