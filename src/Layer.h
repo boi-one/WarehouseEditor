@@ -8,7 +8,7 @@ public:
 	static inline int layerCount;
 	static inline Mouse mouse;
 	int id;
-	char name[64] = "layer name";
+	std::string name = "layer name";
 	bool renameLayer = false;
 	bool selected = false;
 	bool hidden = false;

@@ -1,6 +1,6 @@
 #include "LayerManager.h"
 
-void LayerManager::ManageLayers(ImDrawList* draw_list, Camera& camera, std::vector<int>& deletionList)
+void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 {
 	if (ImGui::Button("+"))
 	{
@@ -31,7 +31,7 @@ void LayerManager::ManageLayers(ImDrawList* draw_list, Camera& camera, std::vect
 		Layer& loopedLayer = allLayers.at(i);
 
 		char layerLabel[64];
-		snprintf(layerLabel, sizeof(layerLabel), "%d. Layer: %s\nitems %d", i, loopedLayer.name, (int)loopedLayer.allConveyors.size());
+		snprintf(layerLabel, sizeof(layerLabel), "%d. Layer: %s\nitems %d", i, loopedLayer.name.c_str(), (int)loopedLayer.allConveyors.size());
 		
 		if (loopedLayer.selected)
 		{
@@ -102,14 +102,16 @@ void LayerManager::ManageLayers(ImDrawList* draw_list, Camera& camera, std::vect
 		{
 			char renameLabel[64];
 			snprintf(renameLabel, sizeof(renameLabel), "edit layer %d", loopedLayer.id);
-			char input[64] = "";
+
+			char input[128] = "";
 			if (ImGui::Begin(renameLabel))
 			{
-				ImGui::InputText("Enter layer name", input, sizeof(input));
+				//strncpy(loopedLayer.name.data(), (char*)&input, sizeof(input));
+				ImGui::InputText("Enter layer name", input, IM_ARRAYSIZE(input));
 				std::cout << input << std::endl;
 				if (ImGui::Button("Apply"))
 				{
-					std::strcpy(loopedLayer.name, input);
+					loopedLayer.name = input;
 					loopedLayer.renameLayer = false;
 				}
 				ImGui::SameLine();

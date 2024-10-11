@@ -15,8 +15,10 @@ public:
 	}
 	void DrawCanvas();
 	void DrawSettings();
-	void DrawGrid(int gridSize, int row, int column, ImVec2 startPos, Camera& camera);
+	void DrawGrid(int gridSize, Camera& camera);
 	void Draw();
+
+	void Render();
 
 public:
 	inline static bool running = true;

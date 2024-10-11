@@ -1,21 +1,27 @@
 #include "WindowManager.h"
 
-void WindowManager::DrawGrid(int gridSize, int row, int column, ImVec2 startPos, Camera& camera)
+void WindowManager::DrawGrid(int gridSize, Camera& camera)
 {
-	for (int x = 0; x < row; ++x) {
-		ImVec2 start = ImVec2(camera.gridOrigin.x, camera.gridOrigin.y + x * gridSize);
-		ImVec2 end = ImVec2(camera.gridOrigin.x + column * gridSize, start.y);
-		ImGui::GetWindowDrawList()->AddLine(
-			camera.ToWorldPosition(start),
-			camera.ToWorldPosition(end), ImColor(200, 0, 0, 255));
-	}
+	float gridSpacing = camera.gridSize;
 
-	for (int y = 0; y < column; ++y) {
-		ImVec2 start = ImVec2(camera.gridOrigin.x + y * gridSize, camera.gridOrigin.y);
-		ImVec2 end = ImVec2(start.x, camera.gridOrigin.y + row * gridSize);
-		ImGui::GetWindowDrawList()->AddLine(
-			camera.ToWorldPosition(start),
-			camera.ToWorldPosition(end), ImColor(0, 200, 0, 255));
+	float startX = fmod(camera.position.x, gridSpacing);
+	float startY = fmod(camera.position.y, gridSpacing);
+	//* replace
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+	for (float x = startX; x < camera.size.x; x += gridSpacing)
+	{
+		
+		ImVec2 startLine = camera.ToScreenPosition(ImVec2(x, 0));
+		ImVec2 endLine = camera.ToScreenPosition(ImVec2(x, camera.size.y));
+		draw_list->AddLine(startLine, endLine, ImColor(200, 0, 0, 255), .5f);
+	}
+	for (float y = startY; y < camera.size.y; y += gridSpacing)
+	{
+		ImVec2 startLine = camera.ToScreenPosition(ImVec2(0, y));
+		ImVec2 endLine = camera.ToScreenPosition(ImVec2(camera.size.x, y));
+
+		draw_list->AddLine(startLine, endLine, ImColor(0, 200, 0, 255), .5f);
 	}
 }
 
@@ -25,11 +31,11 @@ void WindowManager::DrawCanvas()
 	Tools::camPos = camera.position;
 	Mouse& mouse = Layer::mouse;
 
+	camera.UpdateCamera();
+
 	mouse.previousMousePosition = mouse.liveMousePosition;
 	mouse.liveMousePosition = ImGui::GetMousePos();
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
-
-
 
 	ImGui::SetNextWindowSize(ImVec2(1080, 720));
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -37,6 +43,9 @@ void WindowManager::DrawCanvas()
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDocking;
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0.1f, 1));
 	ImGui::Begin("Canvas", 0, window_flags);
+	bool focusedWindow = ImGui::IsWindowFocused();
+	const char* selectWindow = focusedWindow ? "selected window: Canvas" : "selected window: Settings";
+	ImGui::Text(selectWindow);
 	ImGui::PopStyleColor();
 
 	if (ImGui::IsWindowFocused() && editMode)
@@ -121,24 +130,26 @@ void WindowManager::DrawCanvas()
 					}
 					else
 					{
-						mouse.SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
+						mouse.SelectedPoint = ImVec2(camera.position.x - 100000000, camera.position.x - 100000000);
 						c.selected = false;
 					}
 				}
 			}
 		}
+
 		if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
 		{
 			std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
+
 			if (mouse.clickedRight)
 			{
 				if (allConveyors.size() > 0 && allConveyors.at(allConveyors.size() - 1).points.size() < 2)
-					allConveyors.pop_back();
+					allConveyors.pop_back(); //verwijderd de conveyor als er minder dan 2 punten op zitten anders krijg je ontzichtbare conveyors
 				newConveyor = true;
 				Conveyor::alltimeConveyorCount++;
 			}
 			mouse.clickedRight = false;
-			if (!mouse.canvasFocus) mouse.canvasFocus = true; //doet vgm niks?
+			if (!mouse.canvasFocus) mouse.canvasFocus = true; //! doet vgm niks?
 
 		}
 		static ImVec2 dragOffset;
@@ -195,7 +206,7 @@ void WindowManager::DrawCanvas()
 		if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
 			camera.position.x -= camera.speed / camera.zoom;
 
-		if (io.MouseWheel > 0 && camera.zoom < 3.f)
+		if (io.MouseWheel > 0 && camera.zoom < 2.9f)
 			camera.zoom += 0.1f;
 		if (io.MouseWheel < 0 && camera.zoom > 0.5f)
 			camera.zoom -= 0.1f;
@@ -227,73 +238,23 @@ void WindowManager::DrawCanvas()
 
 	if (!showNewLine) mouse.lastPlacedPoint = mouse.liveMousePosition;
 
-
-
-	if (Tools::Magnitude(camera.gridOrigin, camera.position) > 200)
-	{
-		camera.gridOrigin.x = floor(camera.position.x / 100 * camera.zoom) * 100 * camera.zoom;
-		camera.gridOrigin.y = floor(camera.position.y / 100 * camera.zoom) * 100 * camera.zoom;
-	}
-
-	float gridSize = 100 * camera.zoom;
-
 	//Draw to screen
+	//* replace
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	if (grid)
-	{
-		DrawGrid(100, 100, 100, camera.gridOrigin, camera);
-	}
+	
 
-	for (Layer l : LayerManager::allLayers)
-	{
-		if (!l.hidden)
-		{
-			ImVec4 color;
 
-			if (l.selected)
-				color = ImVec4(1, 1, 1, 1);
-			else
-				color = ImVec4(0.4f, 0.4f, 0.4f, 1.f);
 
-			l.DrawConveyors(draw_list, camera, color);
-		}
-	}
-
-	if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
-	{
-		//Draw selection marker
-		int rectSize = 20 * camera.zoom;
-		draw_list->AddRect(camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x - rectSize, mouse.SelectedPoint.y - rectSize)),
-			camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
-			ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
-
-		//Draw newline
-		if (editMode && showNewLine && ImGui::IsWindowFocused())
-		{
-			if (!snapping)
-			{
-
-				ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
-				ImVec2 mouseWorldPos = camera.ToScreenPosition(mouse.liveMousePosition);
-				draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
-			}
-			else
-			{
-				ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
-				ImVec2 mouseWorldPos = camera.ToScreenPosition(mouse.snapPosition);
-				draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
-			}
-		}
-	}
-
-	if (snapping && editMode) //FIX DE SNAPPPPPIIINGGGGGGG
+	if (snapping && editMode) //! FIX DE SNAPPING
 	{
 		ImVec2 worldPos = camera.ToWorldPosition(mouse.liveMousePosition);
+		float gridSize = 100;
 
-		mouse.snapPosition.x = floor(worldPos.x / (gridSize)) * gridSize;
-		mouse.snapPosition.y = floor(worldPos.y / (gridSize)) * gridSize;
+		//mouse.snapPosition.x = (trunc(worldPos.x / gridSize) + (fmod(worldPos.x, gridSize) > .5f ? 0 : 1)) * gridSize;
+		//mouse.snapPosition.y = (trunc(worldPos.y / gridSize) + (fmod(worldPos.y, gridSize) > .5f ? 0 : 1)) * gridSize;
 
-		draw_list->AddCircleFilled(camera.ToScreenPosition(mouse.snapPosition), 10.f, ImColor(255, 0, 255, 255), 12);
+		mouse.snapPosition.x = floor(worldPos.x / gridSize) * gridSize;
+		mouse.snapPosition.y = floor(worldPos.y / gridSize) * gridSize;
 	}
 	ImGui::End();
 }
@@ -304,8 +265,6 @@ void WindowManager::DrawSettings()
 
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 	std::vector<int> deletionList;
-
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 1));
 	ImGui::SetNextWindowPos(ImVec2(1080, 0));
@@ -329,7 +288,7 @@ void WindowManager::DrawSettings()
 	ImGui::Text(mousePositionLabel);
 
 	char cameraPositionLabel[64];
-	snprintf(cameraPositionLabel, sizeof(cameraPositionLabel), "Camera Position:\nX:%d Y:%d", (int)camera.position.x, (int)camera.position.y);
+	snprintf(cameraPositionLabel, sizeof(cameraPositionLabel), "Camera Position:\nX:%.0f Y:%.0f", camera.position.x / camera.zoom, camera.position.y / camera.zoom);
 	ImGui::Text(cameraPositionLabel);
 
 	char cameraZoomLabel[64];
@@ -368,14 +327,16 @@ void WindowManager::DrawSettings()
 		if (!grid) snapping = false;
 	}
 
-	//TODO: 
-	 //name layers fixen
+	//! TODO: 
+	// //bugs zoeken: conveyor position fixen, conveyor select naar midden van camera fixen
+	//
+	 //name layers fixen 
 	 //gridsnapping fixen
 	 //edit conveyor path
 	 //connect conveyors
 	 //cross conveyors
 
-	LayerManager::ManageLayers(draw_list, camera, deletionList);
+	LayerManager::ManageLayers(camera, deletionList);
 
 	ImGui::End();
 
@@ -395,6 +356,68 @@ void WindowManager::DrawSettings()
 		if (!ImGui::IsWindowFocused()) showShortcuts = false;
 		ImGui::End();
 
+	}
+
+	Render();
+}
+
+void WindowManager::Render() //de enige plek waar to world en to screen gebruikt mogen worden
+{
+	//!! TODO: to world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken
+		//! want het bebeurt al in de screen/world position. (alle berekeningen doen in world position en dan converten zonder zoom etc.)
+		//! denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
+
+	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
+	Mouse& mouse = Layer::mouse;
+
+	if (grid)
+	{
+		DrawGrid(camera.gridSize, camera);
+	}
+
+	for (Layer l : LayerManager::allLayers)
+	{
+		if (!l.hidden)
+		{
+			ImVec4 color = ImVec4(0, 0, 0, 0);
+
+			if (l.selected)
+				color = ImVec4(1, 1, 1, 1);
+			else
+				color = ImVec4(0.4f, 0.4f, 0.4f, 1.f);
+
+			l.DrawConveyors(draw_list, camera, color);
+		}
+	}
+
+	if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
+	{
+		//Draw selection marker
+		int rectSize = 20 * camera.zoom;
+		draw_list->AddRect(camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x - rectSize, mouse.SelectedPoint.y - rectSize)),
+			camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
+			ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
+
+		//Draw newline
+		if (editMode && showNewLine && ImGui::IsWindowFocused())
+		{
+			ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
+			ImVec2 mouseWorldPos;
+
+			if (!snapping)
+				mouseWorldPos = camera.ToScreenPosition(mouse.liveMousePosition);
+			else
+				mouseWorldPos = camera.ToScreenPosition(mouse.snapPosition);
+
+			draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
+		}
+	}
+
+	//grid Cursor
+	if (snapping && editMode)
+	{
+		draw_list->AddCircleFilled(camera.ToScreenPosition(mouse.snapPosition), 10.f, ImColor(255, 0, 255, 255), 12);
 	}
 }
 

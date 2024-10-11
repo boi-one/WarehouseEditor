@@ -1,33 +1,34 @@
 #include "Camera.h"
 
-ImVec2 Camera::ToWorldPositionOLD(ImVec2 pos)
-{
-    ImVec2 screenPosition;
-    screenPosition.x = (pos.x - position.x) * this->zoom;
-    screenPosition.y = (pos.y - position.y) * this->zoom;
-    return screenPosition;
-}
-
-ImVec2 Camera::ToScreenPositionOLD(ImVec2 pos)
-{
-    ImVec2 worldPosition;
-    worldPosition.x = (pos.x / this->zoom) + position.x;
-    worldPosition.y = (pos.y / this->zoom) + position.y;
-    return worldPosition;
-}
-
 ImVec2 Camera::ToWorldPosition(ImVec2 pos)
 {
-    ImVec2 screenPosition;
-    screenPosition.x = (pos.x * this->zoom) + position.x;
-    screenPosition.y = (pos.y * this->zoom) + position.y;
-    return screenPosition;
+	ImVec2 screenPosition;
+	screenPosition.x = (pos.x * zoom) + position.x;
+	screenPosition.y = (pos.y * zoom) + position.y;
+	return screenPosition;
 }
 
 ImVec2 Camera::ToScreenPosition(ImVec2 pos)
 {
-    ImVec2 worldPosition;
-    worldPosition.x = (pos.x - position.x) / this->zoom;
-    worldPosition.y = (pos.y - position.y) / this->zoom;
-    return worldPosition;
+	ImVec2 worldPosition;
+	worldPosition.x = (pos.x - position.x) / zoom;
+	worldPosition.y = (pos.y - position.y) / zoom;
+	return worldPosition;
+}
+
+void Camera::UpdateCamera()
+{
+	gridSize = 100;
+
+	Width = (screenWidth - 200);
+	Height = screenHeight;
+
+	size = ImVec2(Width, Height);
+	center = ImVec2(size.x * 0.5f, size.y * 0.5f);
+
+	ImVec2 WidthHeightWorld = ImVec2(Width, Height);
+	Width = WidthHeightWorld.x;
+	Height = WidthHeightWorld.y;
+	//* replace
+	ImGui::GetWindowDrawList()->AddRect(position, ImVec2(Width, Height), ImColor(1, 0, 0, 1), 0, 50.f);
 }
