@@ -313,8 +313,9 @@ void WindowManager::DrawSettings()
 	}
 }
 
-void WindowManager::Render() //de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
+void WindowManager::Render() 
 {
+	//de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
 	//!! TODO: to world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken
 		//! want het bebeurt al in de screen/world position. (alle berekeningen doen in world position en dan converten zonder zoom etc.)
 		//! denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
@@ -373,8 +374,8 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 		ImVec2 worldPos = mouse.liveMousePosition;
 		float gridSize = grid.gridSize;
 
-		mouse.snapPosition.x = round(worldPos.x / gridSize) * gridSize;
-		mouse.snapPosition.y = round(worldPos.y / gridSize) * gridSize;
+		mouse.snapPosition.x = round(worldPos.x / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
+		mouse.snapPosition.y = round(worldPos.y / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
 
 		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}

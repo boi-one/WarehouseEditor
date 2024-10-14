@@ -6,5 +6,6 @@ class Grid
 public:
 	bool active = true;
 	int gridSize = 100;
+	float zoomedGridSpacing = 0;
 	void DrawGrid(ImDrawList* draw_list, Camera& camera);
 };
