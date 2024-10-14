@@ -23,8 +23,4 @@ void Camera::UpdateCamera()
 
 	size = ImVec2(Width, Height);
 	center = ImVec2(size.x * 0.5f, size.y * 0.5f);
-
-	ImVec2 WidthHeightWorld = ImVec2(Width, Height);
-	Width = WidthHeightWorld.x;
-	Height = WidthHeightWorld.y;
 }

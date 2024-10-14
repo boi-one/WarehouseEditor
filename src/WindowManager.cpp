@@ -46,10 +46,10 @@ void WindowManager::DrawCanvas()
 
 				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
 				if (!snapping)
-					currentConveyor.points.push_back(mouse.liveMousePosition);
+					currentConveyor.points.push_back(camera.ToWorldPosition(mouse.liveMousePosition));
 				else
-					currentConveyor.points.push_back(mouse.snapPosition);
-				mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
+					currentConveyor.points.push_back(camera.ToWorldPosition(mouse.snapPosition));
+				mouse.lastPlacedPoint = camera.ToWorldPosition(currentConveyor.points[currentConveyor.points.size() - 1]);
 			}
 
 			if (!mouse.canvasFocus) mouse.canvasFocus = true;
@@ -313,7 +313,7 @@ void WindowManager::DrawSettings()
 	}
 }
 
-void WindowManager::Render() //de enige plek waar to world en to screen gebruikt mogen worden
+void WindowManager::Render() //de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
 {
 	//!! TODO: to world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken
 		//! want het bebeurt al in de screen/world position. (alle berekeningen doen in world position en dan converten zonder zoom etc.)
@@ -327,7 +327,6 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 
 	if (grid.active)
 	{
-		//maak grid class
 		grid.DrawGrid(draw_list, camera);
 	}
 
@@ -373,7 +372,7 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 	if (snapping && editMode)
 	{
 		ImVec2 worldPos = mouse.liveMousePosition;
-		float gridSize = 100;
+		float gridSize = grid.gridSize;
 
 		mouse.snapPosition.x = round(worldPos.x / gridSize) * gridSize;
 		mouse.snapPosition.y = round(worldPos.y / gridSize) * gridSize;
