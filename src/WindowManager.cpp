@@ -46,10 +46,10 @@ void WindowManager::DrawCanvas()
 
 				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
 				if (!snapping)
-					currentConveyor.points.push_back(camera.ToWorldPosition(mouse.liveMousePosition));
+					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.liveMousePosition));
 				else
-					currentConveyor.points.push_back(camera.ToWorldPosition(mouse.snapPosition));
-				mouse.lastPlacedPoint = camera.ToWorldPosition(currentConveyor.points[currentConveyor.points.size() - 1]);
+					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.snapPosition));
+				mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
 			}
 
 			if (!mouse.canvasFocus) mouse.canvasFocus = true;
@@ -100,7 +100,7 @@ void WindowManager::DrawCanvas()
 					}
 					else
 					{
-						mouse.SelectedPoint = ImVec2(camera.position.x - 100000000, camera.position.x - 100000000);
+						mouse.SelectedPoint = ImVec2(camera.position.x + 100000000, camera.position.x + 100000000);
 						c.selected = false;
 					}
 				}
@@ -347,7 +347,6 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 
 	if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
 	{
-		//Draw selection marker
 		int rectSize = 20 * camera.zoom;
 		draw_list->AddRect(camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x - rectSize, mouse.SelectedPoint.y - rectSize)),
 			camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
@@ -356,15 +355,15 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 		//Draw newline
 		if (editMode && showNewLine && ImGui::IsWindowFocused())
 		{
-			ImVec2 lineStart = camera.ToWorldPosition(mouse.lastPlacedPoint);
+			ImVec2 lineStart = mouse.lastPlacedPoint;
 			ImVec2 mouseWorldPos;
 
 			if (!snapping)
-				mouseWorldPos = camera.ToScreenPosition(mouse.liveMousePosition);
+				mouseWorldPos = mouse.liveMousePosition;
 			else
-				mouseWorldPos = camera.ToScreenPosition(mouse.snapPosition);
+				mouseWorldPos = mouse.snapPosition;
 
-			draw_list->AddLine(lineStart, camera.ToWorldPosition(mouseWorldPos), ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
+			draw_list->AddLine(camera.ToWorldPosition(lineStart), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
 		}
 	}
 
@@ -377,7 +376,7 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 		mouse.snapPosition.x = round(worldPos.x / gridSize) * gridSize;
 		mouse.snapPosition.y = round(worldPos.y / gridSize) * gridSize;
 
-		draw_list->AddCircleFilled(camera.ToScreenPosition(mouse.snapPosition), 10.f, ImColor(255, 0, 255, 255), 12);
+		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}
 }
 
