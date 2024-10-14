@@ -18,8 +18,6 @@ ImVec2 Camera::ToScreenPosition(ImVec2 pos)
 
 void Camera::UpdateCamera()
 {
-	gridSize = 100;
-
 	Width = (screenWidth - 200);
 	Height = screenHeight;
 
@@ -29,6 +27,4 @@ void Camera::UpdateCamera()
 	ImVec2 WidthHeightWorld = ImVec2(Width, Height);
 	Width = WidthHeightWorld.x;
 	Height = WidthHeightWorld.y;
-	//* replace
-	ImGui::GetWindowDrawList()->AddRect(position, ImVec2(Width, Height), ImColor(1, 0, 0, 1), 0, 50.f);
 }

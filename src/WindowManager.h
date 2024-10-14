@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include "LayerManager.h"
+#include "Grid.h"
 
 using std::cout;
 using std::endl;
@@ -15,7 +16,6 @@ public:
 	}
 	void DrawCanvas();
 	void DrawSettings();
-	void DrawGrid(int gridSize, Camera& camera);
 	void Draw();
 
 	void Render();
@@ -23,13 +23,13 @@ public:
 public:
 	inline static bool running = true;
 	Camera camera;
+	Grid grid;
 
 private:
 	bool editMode = true;
 	bool snapping = false;
 	bool newConveyor = true;
 	bool showNewLine = true;
-	bool grid = true;
 	bool showShortcuts = false;
 };
 

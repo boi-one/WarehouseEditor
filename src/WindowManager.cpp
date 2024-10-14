@@ -1,29 +1,5 @@
 #include "WindowManager.h"
-
-void WindowManager::DrawGrid(int gridSize, Camera& camera)
-{
-	float gridSpacing = camera.gridSize;
-
-	float startX = fmod(camera.position.x, gridSpacing);
-	float startY = fmod(camera.position.y, gridSpacing);
-	//* replace
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-	for (float x = startX; x < camera.size.x; x += gridSpacing)
-	{
-		
-		ImVec2 startLine = camera.ToScreenPosition(ImVec2(x, 0));
-		ImVec2 endLine = camera.ToScreenPosition(ImVec2(x, camera.size.y));
-		draw_list->AddLine(startLine, endLine, ImColor(200, 0, 0, 255), .5f);
-	}
-	for (float y = startY; y < camera.size.y; y += gridSpacing)
-	{
-		ImVec2 startLine = camera.ToScreenPosition(ImVec2(0, y));
-		ImVec2 endLine = camera.ToScreenPosition(ImVec2(camera.size.x, y));
-
-		draw_list->AddLine(startLine, endLine, ImColor(0, 200, 0, 255), .5f);
-	}
-}
+#include "Grid.h"
 
 void WindowManager::DrawCanvas()
 {
@@ -71,13 +47,13 @@ void WindowManager::DrawCanvas()
 				if (!snapping)
 				{
 					Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
-					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.liveMousePosition));
+					currentConveyor.points.push_back(mouse.liveMousePosition);
 					mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
 				}
 				else
 				{
 					Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
-					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.snapPosition));
+					currentConveyor.points.push_back(mouse.snapPosition);
 					mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
 				}
 			}
@@ -103,7 +79,7 @@ void WindowManager::DrawCanvas()
 			{
 				for (ImVec2& p : c.points)
 				{
-					ImVec2 convertedP = camera.ToWorldPosition(p);
+					ImVec2 convertedP = camera.ToScreenPosition(p);
 					float distance = Tools::Magnitude(convertedP, mouse.SelectedPoint);
 					if (distance < closestPointDistance)
 					{
@@ -238,24 +214,8 @@ void WindowManager::DrawCanvas()
 
 	if (!showNewLine) mouse.lastPlacedPoint = mouse.liveMousePosition;
 
-	//Draw to screen
-	//* replace
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	
+	Render();
 
-
-
-	if (snapping && editMode) //! FIX DE SNAPPING
-	{
-		ImVec2 worldPos = camera.ToWorldPosition(mouse.liveMousePosition);
-		float gridSize = 100;
-
-		//mouse.snapPosition.x = (trunc(worldPos.x / gridSize) + (fmod(worldPos.x, gridSize) > .5f ? 0 : 1)) * gridSize;
-		//mouse.snapPosition.y = (trunc(worldPos.y / gridSize) + (fmod(worldPos.y, gridSize) > .5f ? 0 : 1)) * gridSize;
-
-		mouse.snapPosition.x = floor(worldPos.x / gridSize) * gridSize;
-		mouse.snapPosition.y = floor(worldPos.y / gridSize) * gridSize;
-	}
 	ImGui::End();
 }
 
@@ -307,7 +267,7 @@ void WindowManager::DrawSettings()
 	ImGui::PopItemWidth();
 
 	const char* snappingLabel = snapping ? "Snapping  Enabled" : "Snapping  Disabled";
-	if (ImGui::Button(snappingLabel) && grid)
+	if (ImGui::Button(snappingLabel) && grid.active)
 	{
 		snapping = !snapping;
 	}
@@ -320,14 +280,15 @@ void WindowManager::DrawSettings()
 		mouse.SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
 	}
 
-	const char* gridLabel = grid ? "Show Grid Enabled" : "Show Grid Disabled";
+	const char* gridLabel = grid.active ? "Show Grid Enabled" : "Show Grid Disabled";
 	if (ImGui::Button(gridLabel))
 	{
-		grid = !grid;
-		if (!grid) snapping = false;
+		grid.active = !grid.active;
+		if (!grid.active) snapping = false;
 	}
 
 	//! TODO: 
+	//! !!! de posities van alles fixen
 	// //bugs zoeken: conveyor position fixen, conveyor select naar midden van camera fixen
 	//
 	 //name layers fixen 
@@ -355,10 +316,7 @@ void WindowManager::DrawSettings()
 		}
 		if (!ImGui::IsWindowFocused()) showShortcuts = false;
 		ImGui::End();
-
 	}
-
-	Render();
 }
 
 void WindowManager::Render() //de enige plek waar to world en to screen gebruikt mogen worden
@@ -368,19 +326,22 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 		//! denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
+	Grid grid;
+
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 	Mouse& mouse = Layer::mouse;
 
-	if (grid)
+	if (grid.active)
 	{
-		DrawGrid(camera.gridSize, camera);
+		//maak grid class
+		grid.DrawGrid(draw_list, camera);
 	}
 
 	for (Layer l : LayerManager::allLayers)
 	{
 		if (!l.hidden)
 		{
-			ImVec4 color = ImVec4(0, 0, 0, 0);
+			ImVec4 color = ImVec4(0, 0, 0, 0); 
 
 			if (l.selected)
 				color = ImVec4(1, 1, 1, 1);
@@ -417,7 +378,13 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 	//grid Cursor
 	if (snapping && editMode)
 	{
-		draw_list->AddCircleFilled(camera.ToScreenPosition(mouse.snapPosition), 10.f, ImColor(255, 0, 255, 255), 12);
+		ImVec2 worldPos = mouse.liveMousePosition;
+		float gridSize = 100;
+
+		mouse.snapPosition.x = round(worldPos.x / gridSize) * gridSize;
+		mouse.snapPosition.y = round(worldPos.y / gridSize) * gridSize;
+
+		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}
 }
 

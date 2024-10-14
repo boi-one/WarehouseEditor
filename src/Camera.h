@@ -13,8 +13,6 @@ public:
 	ImVec2 position = ImVec2(0, 0);
 	ImVec2 size = ImVec2(0, 0);
 
-	int gridSize;
-
 	ImVec2 center;
 	ImVec2 cameraOrigin;
 
