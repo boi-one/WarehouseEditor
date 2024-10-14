@@ -313,7 +313,7 @@ void WindowManager::DrawSettings()
 	}
 }
 
-void WindowManager::Render() 
+void WindowManager::Render()
 {
 	//de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
 	//!! TODO: to world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken
@@ -322,6 +322,8 @@ void WindowManager::Render()
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	Grid grid;
+
+	grid.Update(camera);
 
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 	Mouse& mouse = Layer::mouse;
@@ -372,10 +374,12 @@ void WindowManager::Render()
 	if (snapping && editMode)
 	{
 		ImVec2 worldPos = mouse.liveMousePosition;
-		float gridSize = grid.gridSize;
 
-		mouse.snapPosition.x = round(worldPos.x / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
-		mouse.snapPosition.y = round(worldPos.y / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
+		float relativePosX = worldPos.x - grid.position.x;
+		float relativePosY = worldPos.y - grid.position.y;
+
+		mouse.snapPosition.x = round(relativePosX / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
+		mouse.snapPosition.y = round(relativePosY / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
 
 		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}
