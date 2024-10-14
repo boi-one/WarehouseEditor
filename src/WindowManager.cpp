@@ -44,18 +44,12 @@ void WindowManager::DrawCanvas()
 					allConveyors[allConveyors.size() - 1].selected = true;
 				}
 
+				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
 				if (!snapping)
-				{
-					Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
 					currentConveyor.points.push_back(mouse.liveMousePosition);
-					mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
-				}
 				else
-				{
-					Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
 					currentConveyor.points.push_back(mouse.snapPosition);
-					mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
-				}
+				mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
 			}
 
 			if (!mouse.canvasFocus) mouse.canvasFocus = true;
@@ -79,7 +73,7 @@ void WindowManager::DrawCanvas()
 			{
 				for (ImVec2& p : c.points)
 				{
-					ImVec2 convertedP = camera.ToScreenPosition(p);
+					ImVec2 convertedP = camera.ToWorldPosition(p);
 					float distance = Tools::Magnitude(convertedP, mouse.SelectedPoint);
 					if (distance < closestPointDistance)
 					{
@@ -341,7 +335,7 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 	{
 		if (!l.hidden)
 		{
-			ImVec4 color = ImVec4(0, 0, 0, 0); 
+			ImVec4 color = ImVec4(0, 0, 0, 0);
 
 			if (l.selected)
 				color = ImVec4(1, 1, 1, 1);
@@ -384,7 +378,7 @@ void WindowManager::Render() //de enige plek waar to world en to screen gebruikt
 		mouse.snapPosition.x = round(worldPos.x / gridSize) * gridSize;
 		mouse.snapPosition.y = round(worldPos.y / gridSize) * gridSize;
 
-		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
+		draw_list->AddCircleFilled(camera.ToScreenPosition(mouse.snapPosition), 10.f, ImColor(255, 0, 255, 255), 12);
 	}
 }
 
