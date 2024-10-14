@@ -330,7 +330,7 @@ void WindowManager::Render()
 
 	if (grid.active)
 	{
-		grid.DrawGrid(draw_list, camera);
+		grid.Draw(draw_list, camera);
 	}
 
 	for (Layer l : LayerManager::allLayers)
@@ -378,8 +378,8 @@ void WindowManager::Render()
 		float relativePosX = worldPos.x - grid.position.x;
 		float relativePosY = worldPos.y - grid.position.y;
 
-		mouse.snapPosition.x = round(relativePosX / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
-		mouse.snapPosition.y = round(relativePosY / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
+		mouse.snapPosition.x = round(relativePosX / grid.zoomedSize) * grid.zoomedSize;
+		mouse.snapPosition.y = round(relativePosY / grid.zoomedSize) * grid.zoomedSize;
 
 		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}

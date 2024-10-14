@@ -39,6 +39,11 @@ ImVec2 Tools::SubImVec2(ImVec2 v1, ImVec2 v2)
 	return ImVec2(v1.x - v2.x, v1.y - v2.y);
 }
 
+ImVec2 Tools::SubImVec2(ImVec2 v1, float f)
+{
+	return ImVec2(v1.x - f, v1.y - f);
+}
+
 ImVec2 Tools::ImVec2Distance(ImVec2 v1, ImVec2 v2)
 {
 	return ImVec2(v2.x - v1.x, v2.y - v1.y);
