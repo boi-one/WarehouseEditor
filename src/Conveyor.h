@@ -10,6 +10,7 @@ public:
 	static inline int alltimeConveyorCount = 0;
 	std::vector<ImVec2> points;
 	bool selected = false;
+	bool edit = false;
 
 	Conveyor() = default;
 
@@ -17,6 +18,10 @@ public:
 	{
 		this->id = id;
 	}
+
+	void DrawConveyorHeader();
+
+	void EditConveyor();
 
 	bool operator==(const Conveyor& other) const
 	{

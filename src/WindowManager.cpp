@@ -307,6 +307,8 @@ void WindowManager::DrawSettings()
 	//  connect conveyors
 	//  cross conveyors
 	//  name layers fixen 
+	//! BUGS:
+	//  wanneer je een conveyor maakt, de layer verwijderd en dan weer op het canvas drukt is er een vector subscript out of range error.
 
 	LayerManager::ManageLayers(camera, deletionList);
 
@@ -318,6 +320,8 @@ void WindowManager::DrawSettings()
 		ImGui::Begin("Warehouse Editor Shortcuts");
 		ImGui::PushTextWrapPos(windowWidth);
 		ImGui::TextWrapped("If you can't move or place conveyors you are probably in the settings menu (when opening the program this is the active window). Left or right click on the canvas window to make it your active window.");
+		ImGui::Separator();
+		ImGui::TextWrapped("You can check which window is currently active in the top left corner.");
 		ImGui::Separator();
 		ImGui::TextWrapped("If you can't place a conveyor but do see a green line you've probably not selected a layer.");
 		ImGui::PopTextWrapPos();

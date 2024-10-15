@@ -61,9 +61,8 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 
 				allConveyors.at(i).selected = true;
 				ImVec2 averageConveyorPos = Tools::AverageVec2(allConveyors.at(i).points);
+				//deze camera.zoom hier niet
 				camera.position = Tools::AddImVec2(ImVec2(-averageConveyorPos.x / camera.zoom, -averageConveyorPos.y / camera.zoom), camera.center);
-				// AddImVec omdat de camera.position links boven is dus als je dan + de center doet kom je uit in het midden? 
-				// (center is width en height /2)
 			}
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0, 1));
 			if (ImGui::Button("Delete"))

@@ -1,0 +1,24 @@
+- [x] camera
+    - [x] position
+    - [x] zoom
+    - [x] move
+        - [ ] with mouse
+- [ ] conveyor
+    - [ ] edit path
+    - [ ] connect conveyors
+    - [x] selectable
+    - [x] delete
+    - [x] move with mouse
+- [ ] layers
+    - [ ] connect between layers
+    - [x] show layers
+    - [x] delete layers
+    - [x] reorder layers
+        - [ ] drag and drop
+- [ ] saving and loading to json
+- [ ] convenience
+    - [x] 2d grid
+    - [x] snap to grid
+    - [ ] copy paste
+    - [ ] undo  redo
+- [ ] create a 3d view in pure opengl

@@ -7,7 +7,7 @@ class Camera
 public:
 	int screenWidth = 1280;
 	int screenHeight = 720;
-	float speed = 10.0f;
+	float speed = 5.f;
 	float zoom = 1.0f;
 
 	ImVec2 position = ImVec2(0, 0);
