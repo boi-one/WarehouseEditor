@@ -5,8 +5,8 @@
 class Camera
 {
 public:
-	int screenWidth = 1280;
-	int screenHeight = 720;
+	static inline int screenWidth = 1280;
+	static inline int screenHeight = 720;
 	float speed = 5.0f;
 	float zoom = 1.0f;
 

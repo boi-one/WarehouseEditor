@@ -181,6 +181,7 @@ void WindowManager::DrawCanvas()
 		if (io.MouseWheel < 0 && camera.zoom > 0.5f)
 			camera.zoom -= 0.1f;
 	}
+
 	if (ImGui::IsMouseDown(1))
 		ImGui::SetWindowFocus("Canvas");
 
@@ -321,15 +322,16 @@ void WindowManager::Render()
 		//! denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	Grid grid;
 
-	grid.Update(camera);
 
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 	Mouse& mouse = Layer::mouse;
+	Grid grid;
+
 
 	if (grid.active)
 	{
+		grid.Update(camera);
 		grid.Draw(draw_list, camera);
 	}
 
@@ -378,8 +380,8 @@ void WindowManager::Render()
 		float relativePosX = worldPos.x - grid.position.x;
 		float relativePosY = worldPos.y - grid.position.y;
 
-		mouse.snapPosition.x = round(relativePosX / grid.zoomedSize) * grid.zoomedSize;
-		mouse.snapPosition.y = round(relativePosY / grid.zoomedSize) * grid.zoomedSize;
+		mouse.snapPosition.x = round(relativePosX / grid.tileScaled) * grid.tileScaled;
+		mouse.snapPosition.y = round(relativePosY / grid.tileScaled) * grid.tileScaled;
 
 		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}
