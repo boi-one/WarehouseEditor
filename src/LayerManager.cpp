@@ -89,7 +89,6 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 					l.selected = false;
 				}
 			}
- 
 			loopedLayer.selected = !loopedLayer.selected;
 
 			for (Layer& l : allLayers)

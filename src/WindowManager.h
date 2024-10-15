@@ -17,7 +17,6 @@ public:
 	void DrawCanvas();
 	void DrawSettings();
 	void Draw();
-
 	void Render();
 
 public:

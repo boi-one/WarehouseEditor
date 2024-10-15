@@ -20,7 +20,7 @@ void WindowManager::DrawCanvas()
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0.1f, 1));
 	ImGui::Begin("Canvas", 0, window_flags);
 	bool focusedWindow = ImGui::IsWindowFocused();
-	const char* selectWindow = focusedWindow ? "selected window: Canvas" : "selected window: Settings";
+	const char* selectWindow = focusedWindow ? "active window: Canvas" : "active window: Settings";
 	ImGui::Text(selectWindow);
 	ImGui::PopStyleColor();
 
@@ -33,7 +33,7 @@ void WindowManager::DrawCanvas()
 		}
 		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
 		{
-			if (mouse.clicked && mouse.canvasFocus)
+			if (mouse.clicked && mouse.canvasFocus && LayerManager::currentLayer->selected)
 			{
 				if (newConveyor)
 				{
@@ -119,7 +119,7 @@ void WindowManager::DrawCanvas()
 				Conveyor::alltimeConveyorCount++;
 			}
 			mouse.clickedRight = false;
-			if (!mouse.canvasFocus) mouse.canvasFocus = true; //! doet vgm niks?
+			if (!mouse.canvasFocus) mouse.canvasFocus = true;
 
 		}
 		static ImVec2 dragOffset;
@@ -167,14 +167,30 @@ void WindowManager::DrawCanvas()
 	}
 	if (ImGui::IsWindowFocused())
 	{
-		if (ImGui::IsKeyDown(ImGuiKey_UpArrow))
-			camera.position.y += camera.speed / camera.zoom;
-		if (ImGui::IsKeyDown(ImGuiKey_DownArrow))
-			camera.position.y -= camera.speed / camera.zoom;
-		if (ImGui::IsKeyDown(ImGuiKey_LeftArrow))
-			camera.position.x += camera.speed / camera.zoom;
-		if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
-			camera.position.x -= camera.speed / camera.zoom;
+		if (!snapping)
+		{
+			if (ImGui::IsKeyDown(ImGuiKey_UpArrow))
+				camera.position.y += camera.speed / camera.zoom;
+			if (ImGui::IsKeyDown(ImGuiKey_DownArrow))
+				camera.position.y -= camera.speed / camera.zoom;
+			if (ImGui::IsKeyDown(ImGuiKey_LeftArrow))
+				camera.position.x += camera.speed / camera.zoom;
+			if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
+				camera.position.x -= camera.speed / camera.zoom;
+		}
+		if(snapping)
+		{ 
+			io.KeyRepeatDelay = 1000.f;
+
+			if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, true))
+				camera.position.y += grid.gridSize * camera.zoom;
+			if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, true))
+				camera.position.y -= grid.gridSize * camera.zoom;
+			if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, true))
+				camera.position.x += grid.gridSize * camera.zoom;
+			if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, true))
+				camera.position.x -= grid.gridSize * camera.zoom;
+		}
 
 		if (io.MouseWheel > 0 && camera.zoom < 2.9f)
 			camera.zoom += 0.1f;
@@ -207,7 +223,9 @@ void WindowManager::DrawCanvas()
 	}
 
 	if (!showNewLine) mouse.lastPlacedPoint = mouse.liveMousePosition;
-
+	
+	grid.Update(camera);
+	
 	Render();
 
 	ImGui::End();
@@ -233,7 +251,7 @@ void WindowManager::DrawSettings()
 	{
 		running = false;
 	}
-	if (ImGui::Button("Shortcuts"))
+	if (ImGui::Button("Shortcuts and Help"))
 	{
 		showShortcuts = !showShortcuts;
 	}
@@ -263,6 +281,9 @@ void WindowManager::DrawSettings()
 	const char* snappingLabel = snapping ? "Snapping  Enabled" : "Snapping  Disabled";
 	if (ImGui::Button(snappingLabel) && grid.active)
 	{
+		camera.position.x = round(camera.position.x / grid.tileScaled) * grid.tileScaled;
+		camera.position.y = round(camera.position.y / grid.tileScaled) * grid.tileScaled;
+
 		snapping = !snapping;
 	}
 
@@ -282,14 +303,10 @@ void WindowManager::DrawSettings()
 	}
 
 	//! TODO: 
-	//! !!! de posities van alles fixen
-	// //bugs zoeken: conveyor position fixen, conveyor select naar midden van camera fixen
-	//
-	 //name layers fixen 
-	 //gridsnapping fixen
-	 //edit conveyor path
-	 //connect conveyors
-	 //cross conveyors
+	//  edit conveyor path
+	//  connect conveyors
+	//  cross conveyors
+	//  name layers fixen 
 
 	LayerManager::ManageLayers(camera, deletionList);
 
@@ -297,7 +314,14 @@ void WindowManager::DrawSettings()
 
 	if (showShortcuts)
 	{
+		float windowWidth = ImGui::GetWindowSize().x;
 		ImGui::Begin("Warehouse Editor Shortcuts");
+		ImGui::PushTextWrapPos(windowWidth);
+		ImGui::TextWrapped("If you can't move or place conveyors you are probably in the settings menu (when opening the program this is the active window). Left or right click on the canvas window to make it your active window.");
+		ImGui::Separator();
+		ImGui::TextWrapped("If you can't place a conveyor but do see a green line you've probably not selected a layer.");
+		ImGui::PopTextWrapPos();
+		ImGui::SeparatorText("Shortcuts");
 		ImGui::Text("Esc      : Unselect conveyor");
 		ImGui::Text("R        : Reset camera");
 		ImGui::Text("?        : Open/close this menu");
@@ -316,14 +340,12 @@ void WindowManager::DrawSettings()
 void WindowManager::Render()
 {
 	//de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
-	//!! TODO: to world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken
-		//! want het bebeurt al in de screen/world position. (alle berekeningen doen in world position en dan converten zonder zoom etc.)
-		//! denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
+	//oude todo:
+	//world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken
+		// want het bebeurt al in de screen/world position. (alle berekeningen doen in world position en dan converten zonder zoom etc.)
+		// denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	Grid grid;
-
-	grid.Update(camera);
 
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 	Mouse& mouse = Layer::mouse;
@@ -378,8 +400,8 @@ void WindowManager::Render()
 		float relativePosX = worldPos.x - grid.position.x;
 		float relativePosY = worldPos.y - grid.position.y;
 
-		mouse.snapPosition.x = round(relativePosX / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
-		mouse.snapPosition.y = round(relativePosY / grid.zoomedGridSpacing) * grid.zoomedGridSpacing;
+		mouse.snapPosition.x = round(relativePosX / grid.tileScaled) * grid.tileScaled;
+		mouse.snapPosition.y = round(relativePosY / grid.tileScaled) * grid.tileScaled;
 
 		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}
