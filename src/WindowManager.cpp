@@ -144,15 +144,17 @@ void WindowManager::DrawCanvas()
 			}
 			if (selectedConveyor)
 			{
+				//moves conveyor (doe dit mogelijk ook voor de camera aangezien je die nu met de pijltjes bestuurd(maar dan moet ook de grid snapping anders gaan werken))
+
 				ImVec2 currentMousePos = ImGui::GetMousePos();
-				ImVec2 delta = ImVec2(currentMousePos.x - dragOffset.x, currentMousePos.y - dragOffset.y);
+				ImVec2 difference = ImVec2(currentMousePos.x - dragOffset.x, currentMousePos.y - dragOffset.y);
 				for (ImVec2& p : selectedConveyor->points)
 				{
-					p.x += delta.x;
-					p.y += delta.y;
+					p.x += difference.x;
+					p.y += difference.y;
 				}
-				mouse.SelectedPoint.x += delta.x;
-				mouse.SelectedPoint.y += delta.y;
+				mouse.SelectedPoint.x += difference.x;
+				mouse.SelectedPoint.y += difference.y;
 				dragOffset = currentMousePos;
 			}
 		}
@@ -226,7 +228,7 @@ void WindowManager::DrawCanvas()
 	
 	grid.Update(camera);
 	
-	Render();
+	RenderCanvas();
 
 	ImGui::End();
 }
@@ -341,7 +343,7 @@ void WindowManager::DrawSettings()
 	}
 }
 
-void WindowManager::Render()
+void WindowManager::RenderCanvas()
 {
 	//de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
 	//oude todo:

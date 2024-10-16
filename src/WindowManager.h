@@ -17,7 +17,7 @@ public:
 	void DrawCanvas();
 	void DrawSettings();
 	void Draw();
-	void Render();
+	void RenderCanvas();
 
 public:
 	inline static bool running = true;
