@@ -44,21 +44,6 @@ ImVec2 Tools::ImVec2Distance(ImVec2 v1, ImVec2 v2)
 	return ImVec2(v2.x - v1.x, v2.y - v1.y);
 }
 
-float Tools::GetClosestPoint(ImVec2 start, std::vector<ImVec2>& points)
-{
-	float closestDistance = 999'999;
-	for (ImVec2 v : points)
-	{
-		float distance = Tools::Magnitude(start, v);
-		if (distance < closestDistance)
-		{
-			closestDistance = distance;
-		}
-	}
-
-	return closestDistance;
-}
-
 ImVec2 Tools::Snap(ImVec2 mousePosition, int grid)
 {
 	return ImVec2((mousePosition.x / grid) * grid, (mousePosition.y / grid) * grid);
@@ -88,5 +73,21 @@ ImVec2 Tools::AverageVec2(std::vector<ImVec2>& list)
 	Average.y = Average.y / list.size();
 
 	return Average;
+}
+
+float Tools::FindClosestDistance(std::vector<ImVec2>& list, const ImVec2& origin, float range)
+{
+	ImVec2 closestPoint;
+
+	for (ImVec2& v : list)
+	{
+		float distance = Tools::Magnitude(v, origin);
+		if (distance < range)
+		{
+			range = distance;
+		}
+	}
+
+	return range;
 }
 

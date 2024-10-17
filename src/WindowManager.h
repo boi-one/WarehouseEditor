@@ -27,7 +27,7 @@ public:
 private:
 	bool editMode = true;
 	bool snapping = false;
-	bool newConveyor = true;
+	bool createNewConveyor = true;
 	bool showNewLine = true;
 	bool showShortcuts = false;
 };

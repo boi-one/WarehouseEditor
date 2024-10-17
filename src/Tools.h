@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include "imgui.h"
+#include "point.h"
 
 class Tools
 {
@@ -16,12 +17,11 @@ public:
 	static ImVec2 MultImVec2(ImVec2 v1, ImVec2 v2);
 	static ImVec2 SubImVec2(ImVec2 v1, ImVec2 v2);
 	static ImVec2 ImVec2Distance(ImVec2 v1, ImVec2 v2);
-	static float GetClosestPoint(ImVec2 start, std::vector<ImVec2>& points);
 	static ImVec2 Snap(ImVec2 mousePosition, int grid);
 	static bool	  CompareImVec(const ImVec2 v1, const ImVec2 v2);
 	static bool	  CompareImVec(const ImVec4 v1, const ImVec4 v2);
-
 	static ImVec2 AverageVec2(std::vector<ImVec2>& list);
+	static float  FindClosestDistance(std::vector<ImVec2>& list, const ImVec2& origin, float range = 999'999);
 
 	template<typename T> static int FindInList(std::vector<T>& list, const T& item)
 	{
@@ -46,6 +46,29 @@ public:
 		if (placeInOldList == -1) return;
 		if (oldList.size() > 0)
 			newList.push_back(std::move(oldList.at(placeInOldList)));
+	}
+
+	template<typename T, int S> static std::vector<T> ArrayToVector(T(&arr)[S])
+	{
+		std::vector<T> vec;
+
+		for (int i = 0; i < S; i++)
+		{
+			vec[i] = arr[i];
+		}
+
+		return vec;
+	}
+
+	template<typename T, int S> static std::array<T, S> VectorToArray(std::vector<T> vec)
+	{
+		T arr[S];
+
+		for (int i = 0; i < S; i++)
+		{
+			arr[i] = vec.at(i);
+		}
+		return arr;
 	}
 };
 

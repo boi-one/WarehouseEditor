@@ -6,7 +6,6 @@ class Layer
 {
 public:
 	static inline int layerCount;
-	static inline Mouse mouse;
 	int id;
 	std::string name = "layer name";
 	bool renameLayer = false;
@@ -22,6 +21,6 @@ public:
 	}
 
 	void UnselectAllConveyors();
-	void DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4 color);
+	void DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4 color, bool snapping);
 	void DrawLayerHeader(Camera& camera, std::vector<int>& deletionList);
 };

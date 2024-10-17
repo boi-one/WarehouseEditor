@@ -5,12 +5,11 @@ void WindowManager::DrawCanvas()
 {
 	ImGuiIO& io = ImGui::GetIO();
 	Tools::camPos = camera.position;
-	Mouse& mouse = Layer::mouse;
 
 	camera.UpdateCamera();
 
-	mouse.previousMousePosition = mouse.liveMousePosition;
-	mouse.liveMousePosition = ImGui::GetMousePos();
+	Mouse::previousMousePosition = Mouse::liveMousePosition;
+	Mouse::liveMousePosition = ImGui::GetMousePos();
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 
 	ImGui::SetNextWindowSize(ImVec2(1080, 720));
@@ -28,12 +27,33 @@ void WindowManager::DrawCanvas()
 	{
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
 		{
-			if (!mouse.clicked) mouse.clicked = true;
+			if (!Mouse::clicked) Mouse::clicked = true;
 			showNewLine = true;
 		}
 		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
 		{
-			if (mouse.clicked && mouse.canvasFocus && LayerManager::currentLayer->selected)
+			//nieuwe conveyor functie maken hier
+
+			if (Mouse::clicked && Mouse::canvasFocus && LayerManager::currentLayer->selected)
+			{
+				if (createNewConveyor)
+				{
+					createNewConveyor = false;
+					//create a new conveyor
+					Conveyor newestConveyor(Conveyor::alltimeConveyorCount);
+					LayerManager::currentLayer->UnselectAllConveyors();
+					allConveyors.push_back(newestConveyor);
+					Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
+					currentConveyor.selected = true;
+					currentConveyor.edit = true;
+					currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //dit misschien in conveyor ipv hier
+					currentConveyor.selectedPoint = currentConveyor.path[0];
+				}
+				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
+				currentConveyor.NewPoint();
+			}
+
+			/*if (Mouse::clicked && Mouse::canvasFocus && LayerManager::currentLayer->selected)
 			{
 				if (newConveyor)
 				{
@@ -46,125 +66,26 @@ void WindowManager::DrawCanvas()
 
 				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
 				if (!snapping)
-					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.liveMousePosition));
+					currentConveyor.points.push_back(camera.ToScreenPosition(Mouse::liveMousePosition));
 				else
-					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.snapPosition));
-				mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
-			}
+					currentConveyor.points.push_back(camera.ToScreenPosition(Mouse::snapPosition));
+				Mouse::leftMouseClickPos = currentConveyor.points[currentConveyor.points.size() - 1];
+			}*/
 
-			if (!mouse.canvasFocus) mouse.canvasFocus = true;
-			mouse.clicked = false;
-		}
-
-		if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
-		{
-			showNewLine = false;
-			if (!mouse.clickedRight)
-			{
-				mouse.clickedRight = true;
-				mouse.rightMouseStartPos = mouse.liveMousePosition;
-			}
-
-			//find closest point of conveyor
-			float closestPointDistance = 999'999;
-			mouse.SelectedPoint = mouse.liveMousePosition;
-			ImVec2 closestPoint;
-			for (Conveyor& c : allConveyors)
-			{
-				for (ImVec2& p : c.points)
-				{
-					ImVec2 convertedP = camera.ToWorldPosition(p);
-					float distance = Tools::Magnitude(convertedP, mouse.SelectedPoint);
-					if (distance < closestPointDistance)
-					{
-						closestPointDistance = distance;
-						closestPoint = p;
-					}
-				}
-			}
-
-			for (Conveyor& c : allConveyors)
-			{
-				c.selected = false;
-
-				for (ImVec2& p : c.points)
-				{
-					if (closestPointDistance < 30 * camera.zoom)
-					{
-						mouse.SelectedPoint = closestPoint;
-						if (mouse.SelectedPoint.x == p.x && mouse.SelectedPoint.y == p.y)
-						{
-							c.selected = true;
-							break;
-						}
-					}
-					else
-					{
-						mouse.SelectedPoint = ImVec2(camera.position.x + 100000000, camera.position.x + 100000000);
-						c.selected = false;
-					}
-				}
-			}
-		}
-
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
-		{
-			std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
-
-			if (mouse.clickedRight)
-			{
-				if (allConveyors.size() > 0 && allConveyors.at(allConveyors.size() - 1).points.size() < 2)
-					allConveyors.pop_back(); //verwijderd de conveyor als er minder dan 2 punten op zitten anders krijg je ontzichtbare conveyors
-				newConveyor = true;
-				Conveyor::alltimeConveyorCount++;
-			}
-			mouse.clickedRight = false;
-			if (!mouse.canvasFocus) mouse.canvasFocus = true;
-
-		}
-		static ImVec2 dragOffset;
-		static Conveyor* selectedConveyor = 0;
-		if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
-		{
-			if (!mouse.clickedMiddle)
-			{
-				mouse.middleMouseClickPos = mouse.liveMousePosition;
-				mouse.clickedMiddle = true;
-
-				dragOffset = ImGui::GetMousePos();
-
-				for (Conveyor& c : allConveyors)
-				{
-					if (c.selected)
-					{
-						selectedConveyor = &c;
-						break;
-					}
-				}
-			}
-			if (selectedConveyor)
-			{
-				ImVec2 currentMousePos = ImGui::GetMousePos();
-				ImVec2 delta = ImVec2(currentMousePos.x - dragOffset.x, currentMousePos.y - dragOffset.y);
-				for (ImVec2& p : selectedConveyor->points)
-				{
-					p.x += delta.x;
-					p.y += delta.y;
-				}
-				mouse.SelectedPoint.x += delta.x;
-				mouse.SelectedPoint.y += delta.y;
-				dragOffset = currentMousePos;
-			}
-		}
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Middle) && mouse.clickedMiddle)
-		{
-			mouse.clickedMiddle = false;
+			if (!Mouse::canvasFocus) Mouse::canvasFocus = true;
+			Mouse::clicked = false;
 		}
 	}
 	else
 	{
-		mouse.canvasFocus = false;
+		Mouse::canvasFocus = false;
 	}
+
+	for (Conveyor& c : LayerManager::currentLayer->allConveyors)
+	{
+		c.Update(camera);
+	}
+
 	if (ImGui::IsWindowFocused())
 	{
 		if (!snapping)
@@ -210,7 +131,7 @@ void WindowManager::DrawCanvas()
 		for (Layer& l : LayerManager::allLayers)
 		{
 			l.UnselectAllConveyors();
-			mouse.SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.y);
+			Mouse::SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.y);
 		}
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Slash))
@@ -222,10 +143,10 @@ void WindowManager::DrawCanvas()
 		LayerManager::currentLayer->hidden = !LayerManager::currentLayer->hidden;
 	}
 
-	if (!showNewLine) mouse.lastPlacedPoint = mouse.liveMousePosition;
+	if (!showNewLine) Mouse::leftMouseClickPos = Mouse::liveMousePosition;
 	
 	grid.Update(camera);
-	
+
 	Render();
 
 	ImGui::End();
@@ -233,8 +154,6 @@ void WindowManager::DrawCanvas()
 
 void WindowManager::DrawSettings()
 {
-	Mouse& mouse = Layer::mouse;
-
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 	std::vector<int> deletionList;
 
@@ -292,7 +211,7 @@ void WindowManager::DrawSettings()
 	{
 		editMode = !editMode;
 		LayerManager::currentLayer->UnselectAllConveyors();
-		mouse.SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
+		Mouse::SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
 	}
 
 	const char* gridLabel = grid.active ? "Show Grid Enabled" : "Show Grid Disabled";
@@ -352,7 +271,6 @@ void WindowManager::Render()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
-	Mouse& mouse = Layer::mouse;
 
 	if (grid.active)
 	{
@@ -369,45 +287,43 @@ void WindowManager::Render()
 				color = ImVec4(1, 1, 1, 1);
 			else
 				color = ImVec4(0.4f, 0.4f, 0.4f, 1.f);
-
-			l.DrawConveyors(draw_list, camera, color);
+			
+			l.DrawConveyors(draw_list, camera, color, snapping);
 		}
 	}
 
-	if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
-	{
-		int rectSize = 20 * camera.zoom;
-		draw_list->AddRect(camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x - rectSize, mouse.SelectedPoint.y - rectSize)),
-			camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
-			ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
 
-		//Draw newline
-		if (editMode && showNewLine && ImGui::IsWindowFocused())
-		{
-			ImVec2 lineStart = mouse.lastPlacedPoint;
-			ImVec2 mouseWorldPos;
 
-			if (!snapping)
-				mouseWorldPos = mouse.liveMousePosition;
-			else
-				mouseWorldPos = mouse.snapPosition;
 
-			draw_list->AddLine(camera.ToWorldPosition(lineStart), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
-		}
-	}
+	////oude conveyor draw code
+	//if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
+	//{
+	//	int rectSize = 20 * camera.zoom;
+	//	draw_list->AddRect(camera.ToWorldPosition(ImVec2(Mouse::SelectedPoint.x - rectSize, Mouse::SelectedPoint.y - rectSize)),
+	//		camera.ToWorldPosition(ImVec2(Mouse::SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
+	//		ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
+
+	//	//Draw newline
+	//	if (editMode && showNewLine && ImGui::IsWindowFocused())
+	//	{
+	//		
+
+	//		draw_list->AddLine(camera.ToWorldPosition(lineStart), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
+	//	}
+	//}
 
 	//grid Cursor
 	if (snapping && editMode)
 	{
-		ImVec2 worldPos = mouse.liveMousePosition;
+		ImVec2 worldPos = Mouse::liveMousePosition;
 
 		float relativePosX = worldPos.x - grid.position.x;
 		float relativePosY = worldPos.y - grid.position.y;
 
-		mouse.snapPosition.x = round(relativePosX / grid.tileScaled) * grid.tileScaled;
-		mouse.snapPosition.y = round(relativePosY / grid.tileScaled) * grid.tileScaled;
+		Mouse::snapPosition.x = round(relativePosX / grid.tileScaled) * grid.tileScaled;
+		Mouse::snapPosition.y = round(relativePosY / grid.tileScaled) * grid.tileScaled;
 
-		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
+		draw_list->AddCircleFilled(Mouse::snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}
 }
 

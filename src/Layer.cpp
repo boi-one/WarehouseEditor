@@ -11,7 +11,7 @@ void Layer::UnselectAllConveyors()
 	}
 }
 
-void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4 color)
+void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4 color, bool snapping)
 {
 	for (Conveyor& c : allConveyors)
 	{
@@ -21,20 +21,23 @@ void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4 color)
 		{
 			currentColor = ImVec4(1, 1, 0, 1);
 		}
-
-		if (c.points.size() >= 2)
+		else if (c.edit)
 		{
-			for (int i = 0; i < c.points.size() - 1; i++)
-			{
-				draw_list->AddLine(camera.ToWorldPosition(c.points[i]), camera.ToWorldPosition(c.points[i + 1]), ImColor(currentColor), 20.0f * camera.zoom);
-			}
+			currentColor = ImVec4(0, 0, 1, 1);
 		}
+
+		c.Update(camera);
+
+		ImVec2 mouseWorldPos;
+		if (snapping) mouseWorldPos = Mouse::snapPosition;
+		else mouseWorldPos = Mouse::liveMousePosition;
+		c.Draw(color, 20 * camera.zoom, mouseWorldPos, camera);
 	}
 }
 
 void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 {	
-	ImVec2& SelectedPoint = mouse.SelectedPoint;
+	ImVec2& SelectedPoint = Mouse::SelectedPoint;
 
 	for (int i = 0; i < allConveyors.size(); i++)
 	{
@@ -50,7 +53,7 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.2f, 0.3f, 0.2f, 1.f));
 		if (ImGui::CollapsingHeader(subHeaderLabel))
 		{
-			ImVec2 conveyorPosition = Tools::AverageVec2(allConveyors.at(i).points);
+			ImVec2 conveyorPosition = Conveyor::AveragePointsPosition(allConveyors.at(i).path);
 
 			char conveyorPositionLabel[64];
 			snprintf(conveyorPositionLabel, sizeof(conveyorPositionLabel), "Conveyor Position %d %d", (int)conveyorPosition.x, (int)conveyorPosition.y);
@@ -60,8 +63,7 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 				UnselectAllConveyors();
 
 				allConveyors.at(i).selected = true;
-				ImVec2 averageConveyorPos = Tools::AverageVec2(allConveyors.at(i).points);
-				//deze camera.zoom hier niet
+				ImVec2 averageConveyorPos = Conveyor::AveragePointsPosition(allConveyors.at(i).path);
 				camera.position = Tools::AddImVec2(ImVec2(-averageConveyorPos.x / camera.zoom, -averageConveyorPos.y / camera.zoom), camera.center);
 			}
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.1f, 0, 1));
@@ -71,10 +73,10 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 			}
 			ImGui::PopStyleColor();
 
-			if (allConveyors.size() > 0)
+			/*if (allConveyors.size() > 0)
 			{
-				ImGui::Text("Points %d", allConveyors.at(i).points.size());
-				for (int j = 0; j < allConveyors.at(i).points.size(); j++)
+				ImGui::Text("Points %d", allConveyors.at(i).path.size());
+				for (int j = 0; j < allConveyors.at(i).path.size(); j++)
 				{
 					char buttonLabel[64];
 					snprintf(buttonLabel, sizeof(buttonLabel), "Point %d", j);
@@ -87,7 +89,7 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 					ImGui::SameLine();
 					ImGui::Text("X: %d, Y: %d", -(int)loopedConveyor.points.at(j).x, -(int)loopedConveyor.points.at(j).y);
 				}
-			}
+			}*/
 		}
 		ImGui::PopStyleColor();
 		ImGui::PopID();
