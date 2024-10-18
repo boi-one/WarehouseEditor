@@ -36,10 +36,7 @@ point Conveyor::FindClosestPoint(std::vector<point>& list, ImVec2& origin, Camer
 
 void Conveyor::Edit(Camera& camera)
 {
-	if (path.size() > 1)
-		selectedPoint = FindClosestPoint(path, Mouse::leftMouseClickPos, camera);
-	else
-		selectedPoint = path[0];
+	selectedPoint = FindClosestPoint(path, Mouse::liveMousePosition, camera, 999'999);
 
 	/*if (Mouse::clickedRight && Tools::Magnitude(selectedPoint.position, Mouse::liveMousePosition) > 30)
 	{
@@ -49,38 +46,32 @@ void Conveyor::Edit(Camera& camera)
 
 void Conveyor::NewPoint()
 {
-	std::cout << "click " << std::endl;
 	point newPoint(Mouse::liveMousePosition);
-	path.push_back(newPoint);
 	selectedPoint.connections.push_back(newPoint);
+	path.push_back(newPoint);
 	selectedPoint = newPoint;
 }
 
 
 void Conveyor::Update(Camera& camera)
-{	
-	for (point& p : path)
-	{
-		ImGui::GetWindowDrawList()->AddCircleFilled(p.position, 20, ImColor(255, 255, 255, 255), 100);
-	}
-
+{
 	if (edit)
 	{
 		Edit(camera);
 	}
 }
 
-void Conveyor::Draw(ImVec4& color, float conveyorThickness, ImVec2& mouseWorldPos, Camera& camera)
+void Conveyor::Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera)
 {
-	if (edit)
+	if (edit) //draw newline
 	{
-		ImGui::GetWindowDrawList()
-			->AddLine(camera.ToWorldPosition(selectedPoint.position), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), conveyorThickness);
+		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(selectedPoint.position), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), thickness);
 	}
-	
+
 	for (point& p : path)
 	{
-		p.Draw(color, conveyorThickness);
+		ImGui::GetWindowDrawList()->AddCircleFilled(p.position, 10 * camera.zoom, ImColor(color), 100);
+		p.Draw(color, thickness);
 	}
 }
 

@@ -39,14 +39,13 @@ void WindowManager::DrawCanvas()
 				if (createNewConveyor)
 				{
 					createNewConveyor = false;
-					//create a new conveyor
-					Conveyor newestConveyor(Conveyor::alltimeConveyorCount);
 					LayerManager::currentLayer->UnselectAllConveyors();
-					allConveyors.push_back(newestConveyor);
+					//create a new conveyor
+					allConveyors.push_back(Conveyor::alltimeConveyorCount);
 					Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
 					currentConveyor.selected = true;
 					currentConveyor.edit = true;
-					currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //dit misschien in conveyor ipv hier
+					currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //later in conveyor
 					currentConveyor.selectedPoint = currentConveyor.path[0];
 				}
 				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];

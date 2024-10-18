@@ -11,27 +11,28 @@ void Layer::UnselectAllConveyors()
 	}
 }
 
-void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4 color, bool snapping)
+void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, bool snapping)
 {
 	for (Conveyor& c : allConveyors)
 	{
 		ImVec4 currentColor = color;
 
-		if (c.selected)
-		{
-			currentColor = ImVec4(1, 1, 0, 1);
-		}
-		else if (c.edit)
+		if (c.edit)
 		{
 			currentColor = ImVec4(0, 0, 1, 1);
 		}
+		else if (c.selected)
+		{
+			currentColor = ImVec4(1, 1, 0, 1);
+		}
+		
 
 		c.Update(camera);
 
 		ImVec2 mouseWorldPos;
 		if (snapping) mouseWorldPos = Mouse::snapPosition;
 		else mouseWorldPos = Mouse::liveMousePosition;
-		c.Draw(color, 20 * camera.zoom, mouseWorldPos, camera);
+		c.Draw(currentColor, 20 * camera.zoom, mouseWorldPos, camera);
 	}
 }
 

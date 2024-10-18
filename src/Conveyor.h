@@ -29,7 +29,7 @@ public:
 	void Add(Camera& camera);
 
 	void Update(Camera& camera);
-	void Draw(ImVec4& color, float conveyorThickness, ImVec2& mouseWorldPos, Camera& camera);
+	void Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera);
 	
 	bool operator==(const Conveyor& other) const
 	{

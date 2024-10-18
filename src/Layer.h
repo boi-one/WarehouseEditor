@@ -21,6 +21,6 @@ public:
 	}
 
 	void UnselectAllConveyors();
-	void DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4 color, bool snapping);
+	void DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, bool snapping);
 	void DrawLayerHeader(Camera& camera, std::vector<int>& deletionList);
 };
