@@ -8,7 +8,6 @@ void WindowManager::DrawCanvas()
 
 	camera.UpdateCamera();
 
-	Mouse::previousMousePosition = Mouse::liveMousePosition;
 	Mouse::liveMousePosition = ImGui::GetMousePos();
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 
@@ -25,60 +24,33 @@ void WindowManager::DrawCanvas()
 
 	if (ImGui::IsWindowFocused() && editMode)
 	{
-		if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected)
 		{
-			if (!Mouse::clicked) Mouse::clicked = true;
-			showNewLine = true;
-		}
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-		{
-			//nieuwe conveyor functie maken hier
-
-			if (Mouse::clicked && Mouse::canvasFocus && LayerManager::currentLayer->selected)
+			if (createNewConveyor)
 			{
-				if (createNewConveyor)
-				{
-					createNewConveyor = false;
-					LayerManager::currentLayer->UnselectAllConveyors();
-					//create a new conveyor
-					allConveyors.push_back(Conveyor::alltimeConveyorCount);
-					Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
-					currentConveyor.selected = true;
-					currentConveyor.edit = true;
-					currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //later in conveyor
-					currentConveyor.selectedPoint = currentConveyor.path[0];
-				}
+				createNewConveyor = false;
+				LayerManager::currentLayer->UnselectAllConveyors();
+				//create a new conveyor
+				allConveyors.push_back(Conveyor::alltimeConveyorCount);
 				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
-				currentConveyor.NewPoint();
+				currentConveyor.selected = true;
+				currentConveyor.edit = true;
+				currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //later in conveyor
+				currentConveyor.selectedPoint = &currentConveyor.path[0];
 			}
+			Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
+			currentConveyor.NewPoint(Mouse::liveMousePosition);
+		}
 
-			/*if (Mouse::clicked && Mouse::canvasFocus && LayerManager::currentLayer->selected)
-			{
-				if (newConveyor)
-				{
-					newConveyor = false;
-					Conveyor newConveyor(Conveyor::alltimeConveyorCount);
-					LayerManager::currentLayer->UnselectAllConveyors();
-					allConveyors.push_back(newConveyor);
-					allConveyors[allConveyors.size() - 1].selected = true;
-				}
-
-				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
-				if (!snapping)
-					currentConveyor.points.push_back(camera.ToScreenPosition(Mouse::liveMousePosition));
-				else
-					currentConveyor.points.push_back(camera.ToScreenPosition(Mouse::snapPosition));
-				Mouse::leftMouseClickPos = currentConveyor.points[currentConveyor.points.size() - 1];
-			}*/
-
-			if (!Mouse::canvasFocus) Mouse::canvasFocus = true;
-			Mouse::clicked = false;
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		{
+			Mouse::rightMouseClickPos = Mouse::liveMousePosition;
 		}
 	}
-	else
+	/*else
 	{
 		Mouse::canvasFocus = false;
-	}
+	}*/
 
 	for (Conveyor& c : LayerManager::currentLayer->allConveyors)
 	{
@@ -130,7 +102,7 @@ void WindowManager::DrawCanvas()
 		for (Layer& l : LayerManager::allLayers)
 		{
 			l.UnselectAllConveyors();
-			Mouse::SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.y);
+			Mouse::SelectCursorPosition = ImVec2(camera.position.x - 1000, camera.position.y);
 		}
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Slash))
@@ -142,8 +114,6 @@ void WindowManager::DrawCanvas()
 		LayerManager::currentLayer->hidden = !LayerManager::currentLayer->hidden;
 	}
 
-	if (!showNewLine) Mouse::leftMouseClickPos = Mouse::liveMousePosition;
-	
 	grid.Update(camera);
 
 	Render();
@@ -210,7 +180,7 @@ void WindowManager::DrawSettings()
 	{
 		editMode = !editMode;
 		LayerManager::currentLayer->UnselectAllConveyors();
-		Mouse::SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
+		Mouse::SelectCursorPosition = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
 	}
 
 	const char* gridLabel = grid.active ? "Show Grid Enabled" : "Show Grid Disabled";

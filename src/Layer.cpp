@@ -38,7 +38,7 @@ void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, 
 
 void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 {	
-	ImVec2& SelectedPoint = Mouse::SelectedPoint;
+	ImVec2& SelectedPoint = Mouse::SelectCursorPosition;
 
 	for (int i = 0; i < allConveyors.size(); i++)
 	{

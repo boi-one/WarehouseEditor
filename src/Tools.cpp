@@ -44,11 +44,6 @@ ImVec2 Tools::ImVec2Distance(ImVec2 v1, ImVec2 v2)
 	return ImVec2(v2.x - v1.x, v2.y - v1.y);
 }
 
-ImVec2 Tools::Snap(ImVec2 mousePosition, int grid)
-{
-	return ImVec2((mousePosition.x / grid) * grid, (mousePosition.y / grid) * grid);
-}
-
 bool Tools::CompareImVec(const ImVec2 v1, const ImVec2 v2)
 {
 	return (v1.x == v2.x && v1.y == v2.y);
