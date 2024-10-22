@@ -29,7 +29,7 @@ void WindowManager::DrawCanvas()
 			{
 				LayerManager::currentLayer->UnselectAllConveyors();
 				//create a new conveyor
-				allConveyors.push_back(Conveyor()); //adds a new conveyor to the list
+				allConveyors.push_back(Conveyor());
 				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1]; //sets the conveyor to the newest added to the list
 				currentConveyor.selected = true;
 				currentConveyor.edit = true; //selects and edits it
