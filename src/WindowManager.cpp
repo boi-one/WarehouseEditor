@@ -3,8 +3,7 @@
 
 void WindowManager::DrawCanvas()
 {
-	ImGuiIO& io = ImGui::GetIO();
-	Tools::camPos = camera.position;
+	ImGuiIO& io = ImGui::GetIO(); //for mouse scroll input
 
 	camera.UpdateCamera();
 
@@ -28,18 +27,21 @@ void WindowManager::DrawCanvas()
 		{
 			if (createNewConveyor)
 			{
-				createNewConveyor = false;
 				LayerManager::currentLayer->UnselectAllConveyors();
 				//create a new conveyor
-				allConveyors.push_back(Conveyor::alltimeConveyorCount);
-				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
+				allConveyors.push_back(Conveyor()); //adds a new conveyor to the list
+				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1]; //sets the conveyor to the newest added to the list
 				currentConveyor.selected = true;
-				currentConveyor.edit = true;
+				currentConveyor.edit = true; //selects and edits it
 				currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //later in conveyor
 				currentConveyor.selectedPoint = &currentConveyor.path[0];
 			}
-			Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
-			currentConveyor.NewPoint(Mouse::liveMousePosition);
+			if (!createNewConveyor)
+			{
+				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
+				currentConveyor.NewPoint(Mouse::liveMousePosition); //creates new points for the just created conveyor
+			}
+			createNewConveyor = false;
 		}
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
@@ -70,8 +72,8 @@ void WindowManager::DrawCanvas()
 			if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
 				camera.position.x -= camera.speed / camera.zoom;
 		}
-		if(snapping)
-		{ 
+		if (snapping)
+		{
 			io.KeyRepeatDelay = 1000.f;
 
 			if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, true))
@@ -92,7 +94,7 @@ void WindowManager::DrawCanvas()
 	if (ImGui::IsMouseDown(1))
 		ImGui::SetWindowFocus("Canvas");
 
-	if (ImGui::IsKeyPressed(ImGuiKey_R))
+	if (ImGui::IsKeyPressed(ImGuiKey_R)) //resets the camera to 0
 	{
 		camera.position = ImVec2(0, 0);
 		camera.zoom = 1.0f;
@@ -191,12 +193,14 @@ void WindowManager::DrawSettings()
 	}
 
 	//! TODO: 
-	//  edit conveyor path
-	//  connect conveyors
+	//  edit conveyor path -> fix dat het nieuwste punt altijd het current punt is waar de newline uit komt
+	//  connect conveyors 
 	//  cross conveyors
 	//  name layers fixen 
 	//! BUGS:
 	//  wanneer je een conveyor maakt, de layer verwijderd en dan weer op het canvas drukt is er een vector subscript out of range error.
+	// en waarschijnlijk nog meer crashes vanwege memory management/vectors
+
 
 	LayerManager::ManageLayers(camera, deletionList);
 
@@ -256,7 +260,7 @@ void WindowManager::Render()
 				color = ImVec4(1, 1, 1, 1);
 			else
 				color = ImVec4(0.4f, 0.4f, 0.4f, 1.f);
-			
+
 			l.DrawConveyors(draw_list, camera, color, snapping);
 		}
 	}
@@ -298,6 +302,9 @@ void WindowManager::Render()
 
 void WindowManager::Draw()
 {
+	//the logic for the canvas region
 	DrawCanvas();
+	//the logic for the settings region on the right
 	DrawSettings();
+	//need to rename it
 }

@@ -61,12 +61,13 @@ ImVec2 Conveyor::CloseToPoint(Camera& camera, std::vector<point>& path, ImVec2 m
 
 void Conveyor::NewPoint(ImVec2 mouseWorldPos) //laat het snappen als het in de buurt is van een point en laat het werken in snapping mode
 {
+	//create new point at the mouse position -> add it to the connections list of the selectedpoint -> point the selectedPoint to the new point -> add selectedPoint to all the points in the conveyor
 	point newPoint(Mouse::liveMousePosition);
 	selectedPoint->connections.push_back(newPoint);
-	selectedPoint = &newPoint;
+	selectedPoint = &selectedPoint->connections[selectedPoint->connections.size() - 1];
 	path.push_back(*selectedPoint);
+	std::cout << "selected adress: " << selectedPoint << std::endl;
 }
-
 
 void Conveyor::Update(Camera& camera)
 {
@@ -80,7 +81,7 @@ void Conveyor::Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camer
 {
 	if (edit) //draw newline
 	{
-		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(selectedPoint->position), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), thickness);
+ 		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(selectedPoint->position), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), thickness);
 	}
 
 	for (point& p : path)

@@ -25,13 +25,12 @@ void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, 
 		{
 			currentColor = ImVec4(1, 1, 0, 1);
 		}
-		
-
-		c.Update(camera);
-
+	
 		ImVec2 mouseWorldPos;
 		if (snapping) mouseWorldPos = Mouse::snapPosition;
 		else mouseWorldPos = Mouse::liveMousePosition;
+
+		//VVVVVVVV UPDATE CONVEYORS VVVVVVV UPDATE CONVEYORS VVVVVVVV
 		c.Draw(currentColor, 20 * camera.zoom, mouseWorldPos, camera);
 	}
 }

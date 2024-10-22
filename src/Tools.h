@@ -8,7 +8,6 @@
 class Tools
 {
 public:
-	static inline ImVec2 camPos;
 	static float  Magnitude(ImVec2 p1, ImVec2 p2);
 	static ImVec2 AddOffset(ImVec2 start);
 	static ImVec2 AddImVec2(ImVec2 v1, float f);

@@ -72,6 +72,7 @@ int main()
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
 
+		//the application code
 		windowManager.Draw();
 
 		//ImGui::ShowDemoWindow();
