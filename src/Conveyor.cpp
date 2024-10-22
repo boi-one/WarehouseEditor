@@ -34,12 +34,16 @@ point* Conveyor::FindClosestPoint(std::vector<point>& list, ImVec2& origin, Came
 
 void Conveyor::Edit(Camera& camera)
 {
-	if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
+	//! TODO: set the selectedpoint to the point selected with rmb
+
+	/*if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
 	{
-		selectedPoint = FindClosestPoint(path, Mouse::rightMouseClickPos, camera, 999'999);
+		selectedPoint = FindClosestPoint(path, Mouse::rightMouseClickPos, camera, 9'999);
 	}
 	else
+	{
 		selectedPoint = &path[path.size() - 1];
+	}*/
 }
 
 ImVec2 Conveyor::CloseToPoint(Camera& camera, std::vector<point>& path, ImVec2 mouseWorldPos)

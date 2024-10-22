@@ -30,7 +30,8 @@ void WindowManager::DrawCanvas()
 				LayerManager::currentLayer->UnselectAllConveyors();
 				//create a new conveyor
 				allConveyors.push_back(Conveyor());
-				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1]; //sets the conveyor to the newest added to the list
+				LayerManager::currentLayer->selectedConveyor = &allConveyors[allConveyors.size() - 1]; //sets the conveyor to the newest added to the list
+				Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
 				currentConveyor.selected = true;
 				currentConveyor.edit = true; //selects and edits it
 				currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //later in conveyor
@@ -38,7 +39,8 @@ void WindowManager::DrawCanvas()
 			}
 			if (!createNewConveyor)
 			{
-				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
+				Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
+				currentConveyor = allConveyors[allConveyors.size() - 1];
 				currentConveyor.NewPoint(Mouse::liveMousePosition); //creates new points for the just created conveyor
 			}
 			createNewConveyor = false;
@@ -47,6 +49,8 @@ void WindowManager::DrawCanvas()
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
 			Mouse::rightMouseClickPos = Mouse::liveMousePosition;
+			//!!!!!!TODO FIX DIT DAT DE SELECTEDPOINT WORDT TOEGEVOEGD AAN DE CONNECTIONS LIJSTEN VAN ALLE PUNTEN!!!!!!!!!!!
+			LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, Mouse::rightMouseClickPos, camera, 9'999);
 		}
 	}
 	/*else
@@ -199,7 +203,7 @@ void WindowManager::DrawSettings()
 	//  name layers fixen 
 	//! BUGS:
 	//  wanneer je een conveyor maakt, de layer verwijderd en dan weer op het canvas drukt is er een vector subscript out of range error.
-	// en waarschijnlijk nog meer crashes vanwege memory management/vectors
+	//  en waarschijnlijk nog meer crashes vanwege memory management/vectors
 
 
 	LayerManager::ManageLayers(camera, deletionList);

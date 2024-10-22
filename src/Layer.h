@@ -12,6 +12,7 @@ public:
 	bool selected = false;
 	bool hidden = false;
 	std::vector<Conveyor> allConveyors;
+	Conveyor* selectedConveyor;
 
 public:
 	Layer()
