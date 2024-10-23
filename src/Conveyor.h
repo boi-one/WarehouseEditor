@@ -2,6 +2,7 @@
 #include <vector>
 #include "Camera.h"
 #include "Mouse.h"
+#include "point.h"
 
 class Conveyor
 {
@@ -29,6 +30,7 @@ public:
 	void Add(Camera& camera);
 
 	void Update(Camera& camera);
+
 	void Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera);
 	
 	bool operator==(const Conveyor& other) const

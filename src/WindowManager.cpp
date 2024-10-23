@@ -25,7 +25,7 @@ void WindowManager::DrawCanvas()
 	{
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected)
 		{
-			if (createNewConveyor)
+			if (createNewConveyor && editMode)
 			{
 				LayerManager::currentLayer->UnselectAllConveyors();
 				//create a new conveyor
@@ -34,14 +34,17 @@ void WindowManager::DrawCanvas()
 				Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
 				currentConveyor.selected = true;
 				currentConveyor.edit = true; //selects and edits it
-				currentConveyor.path.push_back(point(Mouse::liveMousePosition)); //later in conveyor
+				currentConveyor.path.push_back(point(camera.ToScreenPosition(Mouse::liveMousePosition))); //later in conveyor
 				currentConveyor.selectedPoint = &currentConveyor.path[0];
 			}
-			if (!createNewConveyor)
+
+			//! TODO NR 1 MAAK EEN GOED EDIT SYSTEEMMMMMMM
+
+			if (!createNewConveyor && LayerManager::currentLayer->selectedConveyor->edit)
 			{
 				Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
 				currentConveyor = allConveyors[allConveyors.size() - 1];
-				currentConveyor.NewPoint(Mouse::liveMousePosition); //creates new points for the just created conveyor
+				currentConveyor.NewPoint(camera.ToScreenPosition(Mouse::liveMousePosition)); //creates new points for the just created conveyor
 			}
 			createNewConveyor = false;
 		}
@@ -49,19 +52,14 @@ void WindowManager::DrawCanvas()
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
 			Mouse::rightMouseClickPos = Mouse::liveMousePosition;
-			//!!!!!!TODO FIX DIT DAT DE SELECTEDPOINT WORDT TOEGEVOEGD AAN DE CONNECTIONS LIJSTEN VAN ALLE PUNTEN!!!!!!!!!!!
-			LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, Mouse::rightMouseClickPos, camera, 9'999);
+			ImVec2 worldPosRightClick = camera.ToScreenPosition(Mouse::rightMouseClickPos);
+			LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
 		}
 	}
 	/*else
 	{
 		Mouse::canvasFocus = false;
 	}*/
-
-	for (Conveyor& c : LayerManager::currentLayer->allConveyors)
-	{
-		c.Update(camera);
-	}
 
 	if (ImGui::IsWindowFocused())
 	{
@@ -103,13 +101,33 @@ void WindowManager::DrawCanvas()
 		camera.position = ImVec2(0, 0);
 		camera.zoom = 1.0f;
 	}
+	if (ImGui::IsKeyPressed(ImGuiKey_E))
+	{
+		if (LayerManager::currentLayer->selectedConveyor)
+		{
+			LayerManager::currentLayer->selectedConveyor->edit = true;
+		}
+	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Escape))
 	{
-		for (Layer& l : LayerManager::allLayers)
+		if (LayerManager::currentLayer->selectedConveyor)
+		{
+
+			bool& edit = LayerManager::currentLayer->selectedConveyor->edit;
+			if (!edit)
+			{
+				LayerManager::currentLayer->selectedConveyor->selected = false;
+				createNewConveyor = true;
+			}
+			edit = false;
+			
+		}
+
+		/*for (Layer& l : LayerManager::allLayers)
 		{
 			l.UnselectAllConveyors();
 			Mouse::SelectCursorPosition = ImVec2(camera.position.x - 1000, camera.position.y);
-		}
+		}*/
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Slash))
 	{

@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include "imgui.h"
+#include "Camera.h"
+
 class point
 {
 public:
@@ -12,5 +14,5 @@ public:
 		this->position = position;
 	}
 
-	void Draw(const ImVec4& color, const float thickness);
+	void Draw(const ImVec4& color, Camera& camera, const float thickness);
 };

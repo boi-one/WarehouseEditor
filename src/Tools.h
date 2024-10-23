@@ -3,7 +3,6 @@
 #include <vector>
 #include <iostream>
 #include "imgui.h"
-#include "point.h"
 
 class Tools
 {
