@@ -1,6 +1,6 @@
 #include "Layer.h"
 #include "LayerManager.h"
-
+#include "Settings.h"
 bool selected;
 
 void Layer::UnselectAllConveyors()
@@ -30,7 +30,6 @@ void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, 
 		if (snapping) mouseWorldPos = Mouse::snapPosition;
 		else mouseWorldPos = Mouse::liveMousePosition;
 
-		//VVVVVVVV UPDATE CONVEYORS VVVVVVV UPDATE CONVEYORS VVVVVVVV
 		c.Draw(currentColor, 20 * camera.zoom, mouseWorldPos, camera);
 	}
 }
@@ -99,4 +98,65 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 		}
 		deletionList.clear();
 	}
+}
+
+/// <summary>
+/// returns the closest conveyor in this layer
+/// </summary>
+Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin)
+{
+	float smallestDistance = 99999;
+	point* closestPoint = 0;
+
+	int closestConveyorIndex = -1;
+	int closestPointIndex = -1;
+
+	for (int c = 0; c < allConveyors.size(); c++)
+	{
+		Conveyor& conveyor = allConveyors[c];
+
+		for (int p = 0; p < allConveyors[c].path.size(); p++)
+		{
+			point& point = conveyor.path[p];
+			ImVec2 position = camera.ToWorldPosition(point.position);
+			float distance = Tools::Magnitude(position, Mouse::liveMousePosition);
+			if (distance < smallestDistance)
+			{
+				smallestDistance = distance;
+				closestPoint = &point;
+				closestConveyorIndex = c;
+				closestPointIndex = p;
+			}
+		}
+	}
+	allConveyors[closestConveyorIndex].selectedPoint = &allConveyors[closestConveyorIndex].path[closestPointIndex];
+	return &allConveyors[closestConveyorIndex];
+}
+
+void Layer::CreateConveyor(ImVec2 position)
+{
+	if (Conveyor::createNewConveyor)
+	{
+		LayerManager::currentLayer->UnselectAllConveyors();
+		//create a new conveyor
+		allConveyors.push_back(Conveyor());
+		if(allConveyors.size() < 2)
+			LayerManager::currentLayer->selectedConveyor = &allConveyors[0]; //deze lijn moet veranderen
+		Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
+		currentConveyor.selected = true;
+		currentConveyor.edit = true;
+		currentConveyor.path.push_back(point(position)); //deze lijn crashed
+		currentConveyor.selectedPoint = &currentConveyor.path[0];
+	}
+
+	//!
+	//! TODO NR 1 MAAK EEN GOED EDIT SYSTEEMMMMMMM
+
+	if (!Conveyor::createNewConveyor && LayerManager::currentLayer->selectedConveyor->edit)
+	{
+		Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
+		currentConveyor = allConveyors[allConveyors.size() - 1];
+		currentConveyor.NewPoint(position); //creates new points for the just created conveyor
+	}
+	Conveyor::createNewConveyor = false;
 }

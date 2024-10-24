@@ -20,15 +20,7 @@ public:
 	void Render();
 
 public:
-	inline static bool running = true;
 	Camera camera;
 	Grid grid;
-
-private:
-	bool editMode = true;
-	bool snapping = false;
-	bool createNewConveyor = true;
-	bool showNewLine = true;
-	bool showShortcuts = false;
 };
 

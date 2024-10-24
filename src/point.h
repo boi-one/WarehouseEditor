@@ -8,6 +8,7 @@ class point
 public:
 	ImVec2 position;
 	std::vector<point> connections;
+	bool selected;
 
 	point(ImVec2 position = ImVec2(0, 0))
 	{

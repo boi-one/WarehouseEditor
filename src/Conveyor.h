@@ -13,7 +13,7 @@ public:
 	bool selected = false;
 	bool edit = false;
 	point* selectedPoint;
-	ImVec2 newPointPosition;
+	static inline bool createNewConveyor = true;
 
 	Conveyor() = default;
 	Conveyor(int id)
@@ -23,13 +23,11 @@ public:
 
 	static ImVec2 AveragePointsPosition(std::vector<point> path);
 
+	static point* FindClosestPoint(std::vector<point*>& list, ImVec2& origin, Camera& camera, float range);
+
 	static point* FindClosestPoint(std::vector<point>& list, ImVec2& origin, Camera& camera, float range);
 
 	void DrawConveyorHeader();
-
-	void Add(Camera& camera);
-
-	void Update(Camera& camera);
 
 	void Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera);
 	
@@ -54,7 +52,4 @@ public:
 	static ImVec2 CloseToPoint(Camera& camera, std::vector<point>& path, ImVec2 mouseWorldPos);
 
 	void NewPoint(ImVec2 mouseWorldPos);
-
-private:
-	void Edit(Camera& camera);
 };

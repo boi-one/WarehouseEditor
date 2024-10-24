@@ -1,5 +1,6 @@
 #include "WindowManager.h"
 #include "Grid.h"
+#include "Settings.h"
 
 void WindowManager::DrawCanvas()
 {
@@ -21,39 +22,44 @@ void WindowManager::DrawCanvas()
 	ImGui::Text(selectWindow);
 	ImGui::PopStyleColor();
 
-	if (ImGui::IsWindowFocused() && editMode)
+	std::cout << "conveyors: " << allConveyors.size() << std::endl;
+
+	if (ImGui::IsWindowFocused() && Settings::currentMode == Settings::Mode::edit)
 	{
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected)
 		{
-			if (createNewConveyor && editMode)
-			{
-				LayerManager::currentLayer->UnselectAllConveyors();
-				//create a new conveyor
-				allConveyors.push_back(Conveyor());
-				LayerManager::currentLayer->selectedConveyor = &allConveyors[allConveyors.size() - 1]; //sets the conveyor to the newest added to the list
-				Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
-				currentConveyor.selected = true;
-				currentConveyor.edit = true; //selects and edits it
-				currentConveyor.path.push_back(point(camera.ToScreenPosition(Mouse::liveMousePosition))); //later in conveyor
-				currentConveyor.selectedPoint = &currentConveyor.path[0];
-			}
-
-			//! TODO NR 1 MAAK EEN GOED EDIT SYSTEEMMMMMMM
-
-			if (!createNewConveyor && LayerManager::currentLayer->selectedConveyor->edit)
-			{
-				Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
-				currentConveyor = allConveyors[allConveyors.size() - 1];
-				currentConveyor.NewPoint(camera.ToScreenPosition(Mouse::liveMousePosition)); //creates new points for the just created conveyor
-			}
-			createNewConveyor = false;
+			LayerManager::currentLayer->CreateConveyor(camera.ToScreenPosition(Mouse::liveMousePosition));
 		}
 
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && Mouse::canvasFocus)
 		{
 			Mouse::rightMouseClickPos = Mouse::liveMousePosition;
 			ImVec2 worldPosRightClick = camera.ToScreenPosition(Mouse::rightMouseClickPos);
-			LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
+
+			switch (Settings::currentMode)
+			{
+			case Settings::Mode::view:
+			{
+
+			} break;
+			case Settings::Mode::move:
+			{
+				LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, Mouse::liveMousePosition);
+			} break;
+			case Settings::Mode::edit:
+			{
+				if (Conveyor::createNewConveyor)
+				{
+					LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, Mouse::liveMousePosition);
+					Conveyor::createNewConveyor = false;
+					LayerManager::currentLayer->selectedConveyor->edit = true;
+				}
+				else
+				{
+					LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
+				}
+			} break;
+			}
 		}
 	}
 	/*else
@@ -63,7 +69,7 @@ void WindowManager::DrawCanvas()
 
 	if (ImGui::IsWindowFocused())
 	{
-		if (!snapping)
+		if (!Settings::snapping)
 		{
 			if (ImGui::IsKeyDown(ImGuiKey_UpArrow))
 				camera.position.y += camera.speed / camera.zoom;
@@ -74,7 +80,7 @@ void WindowManager::DrawCanvas()
 			if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
 				camera.position.x -= camera.speed / camera.zoom;
 		}
-		if (snapping)
+		if (Settings::snapping)
 		{
 			io.KeyRepeatDelay = 1000.f;
 
@@ -112,15 +118,14 @@ void WindowManager::DrawCanvas()
 	{
 		if (LayerManager::currentLayer->selectedConveyor)
 		{
-
 			bool& edit = LayerManager::currentLayer->selectedConveyor->edit;
 			if (!edit)
 			{
 				LayerManager::currentLayer->selectedConveyor->selected = false;
-				createNewConveyor = true;
+				Conveyor::createNewConveyor = true;
 			}
 			edit = false;
-			
+
 		}
 
 		/*for (Layer& l : LayerManager::allLayers)
@@ -131,7 +136,7 @@ void WindowManager::DrawCanvas()
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Slash))
 	{
-		showShortcuts = !showShortcuts;
+		Settings::showShortcuts = !Settings::showShortcuts;
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_H))
 	{
@@ -161,11 +166,11 @@ void WindowManager::DrawSettings()
 
 	if (ImGui::Button("Quit"))
 	{
-		running = false;
+		Settings::appRunning = false;
 	}
 	if (ImGui::Button("Shortcuts and Help"))
 	{
-		showShortcuts = !showShortcuts;
+		Settings::showShortcuts = !Settings::showShortcuts;
 	}
 	char mousePositionLabel[64];
 	snprintf(mousePositionLabel, sizeof(mousePositionLabel), "Mouse Position:\nX:%d Y:%d", (int)ImGui::GetMousePos().x, (int)ImGui::GetMousePos().y);
@@ -190,32 +195,33 @@ void WindowManager::DrawSettings()
 	}
 	ImGui::PopItemWidth();
 
-	const char* snappingLabel = snapping ? "Snapping  Enabled" : "Snapping  Disabled";
+	const char* snappingLabel = Settings::snapping ? "Snapping  Enabled" : "Snapping  Disabled";
 	if (ImGui::Button(snappingLabel) && grid.active)
 	{
 		camera.position.x = round(camera.position.x / grid.tileScaled) * grid.tileScaled;
 		camera.position.y = round(camera.position.y / grid.tileScaled) * grid.tileScaled;
 
-		snapping = !snapping;
+		Settings::snapping = !Settings::snapping;
 	}
 
-	const char* editLabel = editMode ? "Edit Mode Enabled" : "Edit Mode Disabled";
-	if (ImGui::Button(editLabel))
+	int selectedMode = (int)Settings::currentMode;
+
+	const char* modeLabels[] = { "View", "Move", "Edit" };
+	if (ImGui::Combo("Mode", &selectedMode, modeLabels, IM_ARRAYSIZE(modeLabels)))
 	{
-		editMode = !editMode;
+		Settings::currentMode = (Settings::Mode)selectedMode;
+		//editMode = !editMode;
 		LayerManager::currentLayer->UnselectAllConveyors();
-		Mouse::SelectCursorPosition = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
 	}
 
 	const char* gridLabel = grid.active ? "Show Grid Enabled" : "Show Grid Disabled";
 	if (ImGui::Button(gridLabel))
 	{
 		grid.active = !grid.active;
-		if (!grid.active) snapping = false;
+		if (!grid.active) Settings::snapping = false;
 	}
 
 	//! TODO: 
-	//  edit conveyor path -> fix dat het nieuwste punt altijd het current punt is waar de newline uit komt
 	//  connect conveyors 
 	//  cross conveyors
 	//  name layers fixen 
@@ -228,7 +234,7 @@ void WindowManager::DrawSettings()
 
 	ImGui::End();
 
-	if (showShortcuts)
+	if (Settings::showShortcuts)
 	{
 		float windowWidth = ImGui::GetWindowSize().x;
 		ImGui::Begin("Warehouse Editor Shortcuts");
@@ -248,9 +254,9 @@ void WindowManager::DrawSettings()
 
 		if (ImGui::Button("Close"))
 		{
-			showShortcuts = false;
+			Settings::showShortcuts = false;
 		}
-		if (!ImGui::IsWindowFocused()) showShortcuts = false;
+		if (!ImGui::IsWindowFocused()) Settings::showShortcuts = false;
 		ImGui::End();
 	}
 }
@@ -283,7 +289,7 @@ void WindowManager::Render()
 			else
 				color = ImVec4(0.4f, 0.4f, 0.4f, 1.f);
 
-			l.DrawConveyors(draw_list, camera, color, snapping);
+			l.DrawConveyors(draw_list, camera, color, Settings::snapping);
 		}
 	}
 
@@ -308,7 +314,7 @@ void WindowManager::Render()
 	//}
 
 	//grid Cursor
-	if (snapping && editMode)
+	if (Settings::snapping && Settings::currentMode == Settings::Mode::edit)
 	{
 		ImVec2 worldPos = Mouse::liveMousePosition;
 
