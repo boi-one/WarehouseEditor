@@ -25,5 +25,5 @@ public:
 	void DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, bool snapping);
 	void DrawLayerHeader(Camera& camera, std::vector<int>& deletionList);
 	Conveyor* ReturnClosestConveyor(Camera& camera, ImVec2& origin);
-	void CreateConveyor(ImVec2 position);
+	void CreateConveyor(ImVec2 position, Camera& camera);
 };

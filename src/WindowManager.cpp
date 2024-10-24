@@ -28,7 +28,8 @@ void WindowManager::DrawCanvas()
 	{
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected)
 		{
-			LayerManager::currentLayer->CreateConveyor(camera.ToScreenPosition(Mouse::liveMousePosition));
+			ImVec2 position = camera.ToScreenPosition(Mouse::liveMousePosition);
+			LayerManager::currentLayer->CreateConveyor(position, camera);
 		}
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && Mouse::canvasFocus)
@@ -67,6 +68,7 @@ void WindowManager::DrawCanvas()
 		Mouse::canvasFocus = false;
 	}*/
 
+	//keyboard controls
 	if (ImGui::IsWindowFocused())
 	{
 		if (!Settings::snapping)
@@ -101,7 +103,7 @@ void WindowManager::DrawCanvas()
 	}
 	if (ImGui::IsMouseDown(1))
 		ImGui::SetWindowFocus("Canvas");
-
+	
 	if (ImGui::IsKeyPressed(ImGuiKey_R)) //resets the camera to 0
 	{
 		camera.position = ImVec2(0, 0);

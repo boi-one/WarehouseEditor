@@ -133,16 +133,19 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin)
 	return &allConveyors[closestConveyorIndex];
 }
 
-void Layer::CreateConveyor(ImVec2 position)
+void Layer::CreateConveyor(ImVec2 position, Camera& camera)
 {
 	if (Conveyor::createNewConveyor)
 	{
 		LayerManager::currentLayer->UnselectAllConveyors();
 		//create a new conveyor
 		allConveyors.push_back(Conveyor());
-		if(allConveyors.size() < 2)
+		if (allConveyors.size() < 2)
 			LayerManager::currentLayer->selectedConveyor = &allConveyors[0]; //deze lijn moet veranderen
+		else		//na 2de conveyor plaatsen read acces violation
+			LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, position); //read acces violation
 		Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
+		
 		currentConveyor.selected = true;
 		currentConveyor.edit = true;
 		currentConveyor.path.push_back(point(position)); //deze lijn crashed

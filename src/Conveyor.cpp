@@ -52,7 +52,7 @@ void Conveyor::NewPoint(ImVec2 mouseWorldPos)
 	point newPoint(mouseWorldPos);
 	selectedPoint->connections.push_back(newPoint);
 	path.push_back(selectedPoint->connections[selectedPoint->connections.size() - 1]);
-	selectedPoint = &path[path.size() - 1]; //hoe was ik hier de helee dag me beeziiiiiigggggggg D: 1 sec onde fix!!!!!!!!!
+	selectedPoint = &path[path.size() - 1];
 }
 
 void Conveyor::Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera)
