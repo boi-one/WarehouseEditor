@@ -9,6 +9,8 @@ using std::endl;
 class WindowManager
 {
 public:
+	static inline bool focusedWindow;
+
 	WindowManager()
 	{
 		LayerManager::AddLayer();

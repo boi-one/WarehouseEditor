@@ -8,6 +8,7 @@ void Layer::UnselectAllConveyors()
 	for (Conveyor& c : allConveyors)
 	{
 		c.selected = false;
+		c.edit = false;
 	}
 }
 
@@ -94,6 +95,10 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 		ImGui::PopID();
 		for (int& i : deletionList)
 		{
+			this->UnselectAllConveyors();
+			this->selectedConveyor->selected = false;
+			Conveyor::createNewConveyor = true;
+			selectedConveyor = 0;
 			Tools::DeleteFromList(allConveyors, allConveyors.at(i));
 		}
 		deletionList.clear();
@@ -138,28 +143,23 @@ void Layer::CreateConveyor(ImVec2 position, Camera& camera)
 	if (Conveyor::createNewConveyor)
 	{
 		LayerManager::currentLayer->UnselectAllConveyors();
-		//create a new conveyor
-		allConveyors.push_back(Conveyor());
-		if (allConveyors.size() < 2)
-			LayerManager::currentLayer->selectedConveyor = &allConveyors[0]; //deze lijn moet veranderen
-		else		//na 2de conveyor plaatsen read acces violation
-			LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, position); //read acces violation
+		Conveyor newConveyor(Conveyor::alltimeConveyorCount++);
+		allConveyors.push_back(newConveyor);
+
+		LayerManager::currentLayer->selectedConveyor = &allConveyors[allConveyors.size()-1];
 		Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
 		
 		currentConveyor.selected = true;
 		currentConveyor.edit = true;
-		currentConveyor.path.push_back(point(position)); //deze lijn crashed
+		currentConveyor.path.push_back(point(position));
 		currentConveyor.selectedPoint = &currentConveyor.path[0];
 	}
 
-	//!
-	//! TODO NR 1 MAAK EEN GOED EDIT SYSTEEMMMMMMM
-
+	//edits an existing conveyor or a new conveyor
 	if (!Conveyor::createNewConveyor && LayerManager::currentLayer->selectedConveyor->edit)
 	{
 		Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
-		currentConveyor = allConveyors[allConveyors.size() - 1];
-		currentConveyor.NewPoint(position); //creates new points for the just created conveyor
+		currentConveyor.NewPoint(position);
 	}
 	Conveyor::createNewConveyor = false;
 }

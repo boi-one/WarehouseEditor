@@ -57,11 +57,6 @@ void Conveyor::NewPoint(ImVec2 mouseWorldPos)
 
 void Conveyor::Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera)
 {
-	if (edit) //draw newline
-	{
-		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(selectedPoint->position), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), thickness);
-	}
-
 	for (point& p : path)
 	{
 		ImGui::GetWindowDrawList()->AddCircleFilled(camera.ToWorldPosition(p.position), 10 * camera.zoom, ImColor(color), 100);
