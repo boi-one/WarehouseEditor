@@ -4,7 +4,7 @@
     - [x] move
         - [ ] with mouse
 - [ ] conveyor
-    - [ ] edit path
+    - [x] edit path
     - [ ] connect conveyors
     - [x] selectable
     - [x] delete

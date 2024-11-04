@@ -259,15 +259,6 @@ void WindowManager::DrawSettings()
 		if (!grid.active) Settings::snapping = false;
 	}
 
-	//! TODO: 
-	//! originele features terug brengen
-	//  cross conveyors
-	//  name layers fixen 
-	//! BUGS:
-	//  wanneer je een conveyor maakt, de layer verwijderd en dan weer op het canvas drukt is er een vector subscript out of range error.
-	//  en waarschijnlijk nog meer crashes vanwege memory management/vectors
-
-
 	LayerManager::ManageLayers(camera, deletionList);
 
 	ImGui::End();
