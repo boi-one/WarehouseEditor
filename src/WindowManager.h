@@ -9,6 +9,8 @@ using std::endl;
 class WindowManager
 {
 public:
+	static inline bool focusedWindow;
+
 	WindowManager()
 	{
 		LayerManager::AddLayer();
@@ -17,18 +19,10 @@ public:
 	void DrawCanvas();
 	void DrawSettings();
 	void Draw();
-	void RenderCanvas();
+	void Render();
 
 public:
-	inline static bool running = true;
 	Camera camera;
 	Grid grid;
-
-private:
-	bool editMode = true;
-	bool snapping = false;
-	bool newConveyor = true;
-	bool showNewLine = true;
-	bool showShortcuts = false;
 };
 

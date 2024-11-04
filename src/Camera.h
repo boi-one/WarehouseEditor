@@ -1,5 +1,5 @@
 #pragma once
-#include "ImGui.h"
+#include "imgui.h"
 #include "Tools.h"
 
 class Camera

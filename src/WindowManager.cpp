@@ -1,16 +1,15 @@
 #include "WindowManager.h"
 #include "Grid.h"
+#include "Settings.h"
 
 void WindowManager::DrawCanvas()
 {
+
 	ImGuiIO& io = ImGui::GetIO();
-	Tools::camPos = camera.position;
-	Mouse& mouse = Layer::mouse;
 
 	camera.UpdateCamera();
 
-	mouse.previousMousePosition = mouse.liveMousePosition;
-	mouse.liveMousePosition = ImGui::GetMousePos();
+	Mouse::liveMousePosition = ImGui::GetMousePos();
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 
 	ImGui::SetNextWindowSize(ImVec2(1080, 720));
@@ -19,157 +18,95 @@ void WindowManager::DrawCanvas()
 		ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoDocking;
 	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0.1f, 1));
 	ImGui::Begin("Canvas", 0, window_flags);
-	bool focusedWindow = ImGui::IsWindowFocused();
+	focusedWindow = ImGui::IsWindowHovered();
 	const char* selectWindow = focusedWindow ? "active window: Canvas" : "active window: Settings";
 	ImGui::Text(selectWindow);
 	ImGui::PopStyleColor();
 
-	if (ImGui::IsWindowFocused() && editMode)
+	if (focusedWindow && LayerManager::currentLayer->selected)
 	{
-		if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
 		{
-			if (!mouse.clicked) mouse.clicked = true;
-			showNewLine = true;
+			ImVec2 position = camera.ToScreenPosition(Mouse::liveMousePosition);
+			LayerManager::currentLayer->CreateConveyor(position, camera);
 		}
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
-		{
-			if (mouse.clicked && mouse.canvasFocus && LayerManager::currentLayer->selected)
-			{
-				if (newConveyor)
-				{
-					newConveyor = false;
-					Conveyor newConveyor(Conveyor::alltimeConveyorCount);
-					LayerManager::currentLayer->UnselectAllConveyors();
-					allConveyors.push_back(newConveyor);
-					allConveyors[allConveyors.size() - 1].selected = true;
-				}
 
-				Conveyor& currentConveyor = allConveyors[allConveyors.size() - 1];
-				if (!snapping)
-					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.liveMousePosition));
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && focusedWindow && LayerManager::currentLayer->selectedConveyor)
+		{
+			Mouse::rightMouseClickPos = Mouse::liveMousePosition;
+			ImVec2 worldPosRightClick = camera.ToScreenPosition(Mouse::rightMouseClickPos);
+
+			switch (Settings::currentMode)
+			{
+			case Settings::Mode::view:
+			{
+
+			} break;
+			case Settings::Mode::move:
+			{
+				LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, Mouse::liveMousePosition);
+				LayerManager::currentLayer->selectedConveyor->selected = true;
+			} break;
+			case Settings::Mode::edit:
+			{
+				if (Conveyor::createNewConveyor)
+				{
+					LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, Mouse::liveMousePosition);
+					Conveyor::createNewConveyor = false;
+					LayerManager::currentLayer->selectedConveyor->selected = true;
+					LayerManager::currentLayer->selectedConveyor->edit = true;
+				}
 				else
-					currentConveyor.points.push_back(camera.ToScreenPosition(mouse.snapPosition));
-				mouse.lastPlacedPoint = currentConveyor.points[currentConveyor.points.size() - 1];
-			}
-
-			if (!mouse.canvasFocus) mouse.canvasFocus = true;
-			mouse.clicked = false;
-		}
-
-		if (ImGui::IsMouseDown(ImGuiMouseButton_Right))
-		{
-			showNewLine = false;
-			if (!mouse.clickedRight)
-			{
-				mouse.clickedRight = true;
-				mouse.rightMouseStartPos = mouse.liveMousePosition;
-			}
-
-			//find closest point of conveyor
-			float closestPointDistance = 999'999;
-			mouse.SelectedPoint = mouse.liveMousePosition;
-			ImVec2 closestPoint;
-			for (Conveyor& c : allConveyors)
-			{
-				for (ImVec2& p : c.points)
 				{
-					ImVec2 convertedP = camera.ToWorldPosition(p);
-					float distance = Tools::Magnitude(convertedP, mouse.SelectedPoint);
-					if (distance < closestPointDistance)
-					{
-						closestPointDistance = distance;
-						closestPoint = p;
-					}
+					LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
 				}
+			} break;
 			}
-
-			for (Conveyor& c : allConveyors)
-			{
-				c.selected = false;
-
-				for (ImVec2& p : c.points)
-				{
-					if (closestPointDistance < 30 * camera.zoom)
-					{
-						mouse.SelectedPoint = closestPoint;
-						if (mouse.SelectedPoint.x == p.x && mouse.SelectedPoint.y == p.y)
-						{
-							c.selected = true;
-							break;
-						}
-					}
-					else
-					{
-						mouse.SelectedPoint = ImVec2(camera.position.x + 100000000, camera.position.x + 100000000);
-						c.selected = false;
-					}
-				}
-			}
-		}
-
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
-		{
-			std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
-
-			if (mouse.clickedRight)
-			{
-				if (allConveyors.size() > 0 && allConveyors.at(allConveyors.size() - 1).points.size() < 2)
-					allConveyors.pop_back(); //verwijderd de conveyor als er minder dan 2 punten op zitten anders krijg je ontzichtbare conveyors
-				newConveyor = true;
-				Conveyor::alltimeConveyorCount++;
-			}
-			mouse.clickedRight = false;
-			if (!mouse.canvasFocus) mouse.canvasFocus = true;
-
 		}
 		static ImVec2 dragOffset;
-		static Conveyor* selectedConveyor = 0;
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
 		{
-			if (!mouse.clickedMiddle)
+			if (!Mouse::clickedMiddle)
 			{
-				mouse.middleMouseClickPos = mouse.liveMousePosition;
-				mouse.clickedMiddle = true;
+				Mouse::middleMouseClickPos = Mouse::liveMousePosition;
+				Mouse::clickedMiddle = true;
 
 				dragOffset = ImGui::GetMousePos();
-
-				for (Conveyor& c : allConveyors)
-				{
-					if (c.selected)
-					{
-						selectedConveyor = &c;
-						break;
-					}
-				}
 			}
-			if (selectedConveyor)
+			if (LayerManager::currentLayer->selectedConveyor->selected)
 			{
 				//moves conveyor (doe dit mogelijk ook voor de camera aangezien je die nu met de pijltjes bestuurd(maar dan moet ook de grid snapping anders gaan werken))
 
 				ImVec2 currentMousePos = ImGui::GetMousePos();
 				ImVec2 difference = ImVec2(currentMousePos.x - dragOffset.x, currentMousePos.y - dragOffset.y);
-				for (ImVec2& p : selectedConveyor->points)
+				for (point& basePoint : LayerManager::currentLayer->selectedConveyor->path)
 				{
-					p.x += difference.x;
-					p.y += difference.y;
+					basePoint.position.x += difference.x;
+					basePoint.position.y += difference.y;
+
+					for (point& p : basePoint.connections)
+					{
+						p.position.x += difference.x;
+						p.position.y += difference.y;
+					}
 				}
-				mouse.SelectedPoint.x += difference.x;
-				mouse.SelectedPoint.y += difference.y;
+
+				Mouse::SelectCursorPosition.x += difference.x;
+				Mouse::SelectCursorPosition.y += difference.y;
+
 				dragOffset = currentMousePos;
 			}
 		}
-		if (!ImGui::IsMouseDown(ImGuiMouseButton_Middle) && mouse.clickedMiddle)
+		if (!ImGui::IsMouseDown(ImGuiMouseButton_Middle) && Mouse::clickedMiddle)
 		{
-			mouse.clickedMiddle = false;
+			Mouse::clickedMiddle = false;
 		}
 	}
-	else
-	{
-		mouse.canvasFocus = false;
-	}
+
+	//keyboard controls
 	if (ImGui::IsWindowFocused())
 	{
-		if (!snapping)
+		if (!Settings::snapping)
 		{
 			if (ImGui::IsKeyDown(ImGuiKey_UpArrow))
 				camera.position.y += camera.speed / camera.zoom;
@@ -180,8 +117,8 @@ void WindowManager::DrawCanvas()
 			if (ImGui::IsKeyDown(ImGuiKey_RightArrow))
 				camera.position.x -= camera.speed / camera.zoom;
 		}
-		if(snapping)
-		{ 
+		if (Settings::snapping)
+		{
 			io.KeyRepeatDelay = 1000.f;
 
 			if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, true))
@@ -193,50 +130,67 @@ void WindowManager::DrawCanvas()
 			if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, true))
 				camera.position.x -= grid.gridSize * camera.zoom;
 		}
-
-		if (io.MouseWheel > 0 && camera.zoom < 2.9f)
-			camera.zoom += 0.1f;
-		if (io.MouseWheel < 0 && camera.zoom > 0.5f)
-			camera.zoom -= 0.1f;
+		if (ImGui::IsWindowHovered())
+		{
+			if (io.MouseWheel > 0 && camera.zoom < 2.9f)
+				camera.zoom += 0.1f;
+			if (io.MouseWheel < 0 && camera.zoom > 0.5f)
+				camera.zoom -= 0.1f;
+		}
 	}
 	if (ImGui::IsMouseDown(1))
 		ImGui::SetWindowFocus("Canvas");
 
-	if (ImGui::IsKeyPressed(ImGuiKey_R))
+	if (ImGui::IsKeyPressed(ImGuiKey_R)) //resets the camera to 0
 	{
 		camera.position = ImVec2(0, 0);
 		camera.zoom = 1.0f;
 	}
+	if (ImGui::IsKeyPressed(ImGuiKey_E))
+	{
+		if (LayerManager::currentLayer->selectedConveyor)
+		{
+			LayerManager::currentLayer->selectedConveyor->edit = true;
+		}
+	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Escape))
 	{
-		for (Layer& l : LayerManager::allLayers)
+		if (LayerManager::currentLayer->selectedConveyor)
+		{
+			bool& edit = LayerManager::currentLayer->selectedConveyor->edit;
+			if (!edit)
+			{
+				LayerManager::currentLayer->selectedConveyor->selected = false;
+				Conveyor::createNewConveyor = true;
+			}
+			edit = false;
+
+		}
+
+		/*for (Layer& l : LayerManager::allLayers)
 		{
 			l.UnselectAllConveyors();
-			mouse.SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.y);
-		}
+			Mouse::SelectCursorPosition = ImVec2(camera.position.x - 1000, camera.position.y);
+		}*/
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Slash))
 	{
-		showShortcuts = !showShortcuts;
+		Settings::showShortcuts = !Settings::showShortcuts;
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_H))
 	{
 		LayerManager::currentLayer->hidden = !LayerManager::currentLayer->hidden;
 	}
 
-	if (!showNewLine) mouse.lastPlacedPoint = mouse.liveMousePosition;
-	
 	grid.Update(camera);
-	
-	RenderCanvas();
+
+	Render();
 
 	ImGui::End();
 }
 
 void WindowManager::DrawSettings()
 {
-	Mouse& mouse = Layer::mouse;
-
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
 	std::vector<int> deletionList;
 
@@ -251,11 +205,11 @@ void WindowManager::DrawSettings()
 
 	if (ImGui::Button("Quit"))
 	{
-		running = false;
+		Settings::appRunning = false;
 	}
 	if (ImGui::Button("Shortcuts and Help"))
 	{
-		showShortcuts = !showShortcuts;
+		Settings::showShortcuts = !Settings::showShortcuts;
 	}
 	char mousePositionLabel[64];
 	snprintf(mousePositionLabel, sizeof(mousePositionLabel), "Mouse Position:\nX:%d Y:%d", (int)ImGui::GetMousePos().x, (int)ImGui::GetMousePos().y);
@@ -280,43 +234,45 @@ void WindowManager::DrawSettings()
 	}
 	ImGui::PopItemWidth();
 
-	const char* snappingLabel = snapping ? "Snapping  Enabled" : "Snapping  Disabled";
+	const char* snappingLabel = Settings::snapping ? "Snapping  Enabled" : "Snapping  Disabled";
 	if (ImGui::Button(snappingLabel) && grid.active)
 	{
 		camera.position.x = round(camera.position.x / grid.tileScaled) * grid.tileScaled;
 		camera.position.y = round(camera.position.y / grid.tileScaled) * grid.tileScaled;
 
-		snapping = !snapping;
+		Settings::snapping = !Settings::snapping;
 	}
 
-	const char* editLabel = editMode ? "Edit Mode Enabled" : "Edit Mode Disabled";
-	if (ImGui::Button(editLabel))
+	int selectedMode = (int)Settings::currentMode;
+
+	const char* modeLabels[] = { "View", "Move", "Edit" };
+	if (ImGui::Combo("Mode", &selectedMode, modeLabels, IM_ARRAYSIZE(modeLabels)))
 	{
-		editMode = !editMode;
+		Settings::currentMode = (Settings::Mode)selectedMode;
 		LayerManager::currentLayer->UnselectAllConveyors();
-		mouse.SelectedPoint = ImVec2(camera.position.x - 1000, camera.position.x - 1000);
 	}
 
 	const char* gridLabel = grid.active ? "Show Grid Enabled" : "Show Grid Disabled";
 	if (ImGui::Button(gridLabel))
 	{
 		grid.active = !grid.active;
-		if (!grid.active) snapping = false;
+		if (!grid.active) Settings::snapping = false;
 	}
 
 	//! TODO: 
-	//  edit conveyor path
-	//  connect conveyors
+	//! originele features terug brengen
 	//  cross conveyors
 	//  name layers fixen 
 	//! BUGS:
 	//  wanneer je een conveyor maakt, de layer verwijderd en dan weer op het canvas drukt is er een vector subscript out of range error.
+	//  en waarschijnlijk nog meer crashes vanwege memory management/vectors
+
 
 	LayerManager::ManageLayers(camera, deletionList);
 
 	ImGui::End();
 
-	if (showShortcuts)
+	if (Settings::showShortcuts)
 	{
 		float windowWidth = ImGui::GetWindowSize().x;
 		ImGui::Begin("Warehouse Editor Shortcuts");
@@ -336,14 +292,14 @@ void WindowManager::DrawSettings()
 
 		if (ImGui::Button("Close"))
 		{
-			showShortcuts = false;
+			Settings::showShortcuts = false;
 		}
-		if (!ImGui::IsWindowFocused()) showShortcuts = false;
+		if (!ImGui::IsWindowFocused()) Settings::showShortcuts = false;
 		ImGui::End();
 	}
 }
 
-void WindowManager::RenderCanvas()
+void WindowManager::Render()
 {
 	//de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
 	//oude todo:
@@ -354,11 +310,18 @@ void WindowManager::RenderCanvas()
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
 	std::vector<Conveyor>& allConveyors = LayerManager::currentLayer->allConveyors;
-	Mouse& mouse = Layer::mouse;
 
 	if (grid.active)
 	{
 		grid.DrawGrid(draw_list, camera);
+	}
+
+	if (focusedWindow && LayerManager::currentLayer->selectedConveyor &&
+		LayerManager::currentLayer->selectedConveyor->edit &&
+		LayerManager::currentLayer->selectedConveyor->selected) //draw newline
+	{
+		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(LayerManager::currentLayer->selectedConveyor->selectedPoint->position),
+			Mouse::liveMousePosition, ImColor(ImVec4(0, 1, 0, 1)), 20 * camera.zoom);
 	}
 
 	for (Layer l : LayerManager::allLayers)
@@ -372,49 +335,50 @@ void WindowManager::RenderCanvas()
 			else
 				color = ImVec4(0.4f, 0.4f, 0.4f, 1.f);
 
-			l.DrawConveyors(draw_list, camera, color);
+			l.DrawConveyors(draw_list, camera, color, Settings::snapping);
 		}
 	}
 
-	if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
-	{
-		int rectSize = 20 * camera.zoom;
-		draw_list->AddRect(camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x - rectSize, mouse.SelectedPoint.y - rectSize)),
-			camera.ToWorldPosition(ImVec2(mouse.SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
-			ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
 
-		//Draw newline
-		if (editMode && showNewLine && ImGui::IsWindowFocused())
-		{
-			ImVec2 lineStart = mouse.lastPlacedPoint;
-			ImVec2 mouseWorldPos;
 
-			if (!snapping)
-				mouseWorldPos = mouse.liveMousePosition;
-			else
-				mouseWorldPos = mouse.snapPosition;
 
-			draw_list->AddLine(camera.ToWorldPosition(lineStart), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
-		}
-	}
+	////oude conveyor draw code
+	//if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
+	//{
+	//	int rectSize = 20 * camera.zoom;
+	//	draw_list->AddRect(camera.ToWorldPosition(ImVec2(Mouse::SelectedPoint.x - rectSize, Mouse::SelectedPoint.y - rectSize)),
+	//		camera.ToWorldPosition(ImVec2(Mouse::SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
+	//		ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
+
+	//	//Draw newline
+	//	if (editMode && showNewLine && ImGui::IsWindowFocused())
+	//	{
+	//		
+
+	//		draw_list->AddLine(camera.ToWorldPosition(lineStart), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
+	//	}
+	//}
 
 	//grid Cursor
-	if (snapping && editMode)
+	if (Settings::snapping && Settings::currentMode == Settings::Mode::edit)
 	{
-		ImVec2 worldPos = mouse.liveMousePosition;
+		ImVec2 worldPos = Mouse::liveMousePosition;
 
 		float relativePosX = worldPos.x - grid.position.x;
 		float relativePosY = worldPos.y - grid.position.y;
 
-		mouse.snapPosition.x = round(relativePosX / grid.tileScaled) * grid.tileScaled;
-		mouse.snapPosition.y = round(relativePosY / grid.tileScaled) * grid.tileScaled;
+		Mouse::snapPosition.x = round(relativePosX / grid.tileScaled) * grid.tileScaled;
+		Mouse::snapPosition.y = round(relativePosY / grid.tileScaled) * grid.tileScaled;
 
-		draw_list->AddCircleFilled(mouse.snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
+		draw_list->AddCircleFilled(Mouse::snapPosition, 10.f, ImColor(255, 0, 255, 255), 12);
 	}
 }
 
 void WindowManager::Draw()
 {
+	//the logic for the canvas region
 	DrawCanvas();
+	//the logic for the settings region on the right
 	DrawSettings();
+	//need to rename it
 }

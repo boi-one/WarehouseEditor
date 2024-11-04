@@ -4,23 +4,33 @@
 class Mouse
 {
 public:
-	Mouse()
-	{
-		SelectedPoint = ImVec2(-1000, 0);
-	}
+	static inline bool clicked = false;
+	static inline bool holdClick = false;
+
+	static inline bool clickedMiddle = false;
+	static inline bool holdMiddleClick = false;
+
+	static inline bool clickedRight = false;
+	static inline bool holdRightClick = false;
+
+	static inline bool canvasFocus = true;
+
+
+	static inline ImVec2 liveMousePosition;
+
+	static inline ImVec2 placePointPosition;
+
+	static inline ImVec2 leftMouseClickPos;
+	static inline ImVec2 rightMouseClickPos;
+	static inline ImVec2 middleMouseClickPos;
+
+	static inline ImVec2 SelectCursorPosition;
+	static inline ImVec2 snapPosition;
 
 public:
-	bool clicked = false;
-	bool clickedMiddle = false;
-	bool clickedRight = false;
-	bool canvasFocus = true;
-	
-	ImVec2 liveMousePosition;
-	ImVec2 previousMousePosition;
-	ImVec2 SelectedPoint;
-	
-	ImVec2 rightMouseStartPos;
-	ImVec2 middleMouseClickPos;
-	ImVec2 lastPlacedPoint;
-	ImVec2 snapPosition;
+	Mouse()
+	{
+		SelectCursorPosition = ImVec2(-5000, 0);
+		placePointPosition = liveMousePosition;
+	}
 };

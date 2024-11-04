@@ -9,6 +9,7 @@
 using json = nlohmann::json;
 
 #include "WindowManager.h"
+#include "Settings.h"
 #include <iostream>
 
 
@@ -56,7 +57,7 @@ int main()
 
 	// Main loop
 
-	while (WindowManager::running)
+	while (Settings::appRunning)
 	{
 		
 		SDL_Event event;
@@ -64,7 +65,7 @@ int main()
 		{
 			ImGui_ImplSDL2_ProcessEvent(&event);
 			if (event.type == SDL_QUIT)
-				WindowManager::running = false;
+				Settings::appRunning = false;
 		}
 
 		// Start the ImGui frame
@@ -72,9 +73,8 @@ int main()
 		ImGui_ImplSDL2_NewFrame();
 		ImGui::NewFrame();
 
+		//the application code
 		windowManager.Draw();
-
-		//ImGui::ShowDemoWindow();
 
 		// Rendering
 		ImGui::Render();
