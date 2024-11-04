@@ -4,7 +4,8 @@
 
 void WindowManager::DrawCanvas()
 {
-	ImGuiIO& io = ImGui::GetIO(); //for mouse scroll input
+
+	ImGuiIO& io = ImGui::GetIO();
 
 	camera.UpdateCamera();
 
@@ -22,7 +23,7 @@ void WindowManager::DrawCanvas()
 	ImGui::Text(selectWindow);
 	ImGui::PopStyleColor();
 
-	if (focusedWindow)
+	if (focusedWindow && LayerManager::currentLayer->selected)
 	{
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
 		{
@@ -62,6 +63,41 @@ void WindowManager::DrawCanvas()
 			} break;
 			}
 		}
+		static ImVec2 dragOffset;
+		if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
+		{
+			if (!Mouse::clickedMiddle)
+			{
+				Mouse::middleMouseClickPos = Mouse::liveMousePosition;
+				Mouse::clickedMiddle = true;
+
+				dragOffset = ImGui::GetMousePos();
+			}
+			if (LayerManager::currentLayer->selectedConveyor->selected)
+			{
+				ImVec2 currentMousePos = ImGui::GetMousePos();
+				ImVec2 difference = ImVec2(currentMousePos.x - dragOffset.x, currentMousePos.y - dragOffset.y);
+				for (point& basePoint : LayerManager::currentLayer->selectedConveyor->path)
+				{
+					basePoint.position.x += difference.x;
+					basePoint.position.y += difference.y;
+
+					for (point& p : basePoint.connections)
+					{
+						p.position.x += difference.x;
+						p.position.y += difference.y;
+					}
+				}
+
+				Mouse::SelectCursorPosition.x += difference.x;
+				Mouse::SelectCursorPosition.y += difference.y;
+				dragOffset = currentMousePos;
+			}
+		}
+		if (!ImGui::IsMouseDown(ImGuiMouseButton_Middle) && Mouse::clickedMiddle)
+		{
+			Mouse::clickedMiddle = false;
+		}
 	}
 
 	//keyboard controls
@@ -91,11 +127,13 @@ void WindowManager::DrawCanvas()
 			if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, true))
 				camera.position.x -= grid.gridSize * camera.zoom;
 		}
-
-		if (io.MouseWheel > 0 && camera.zoom < 2.9f)
-			camera.zoom += 0.1f;
-		if (io.MouseWheel < 0 && camera.zoom > 0.5f)
-			camera.zoom -= 0.1f;
+		if (ImGui::IsWindowHovered())
+		{
+			if (io.MouseWheel > 0 && camera.zoom < 2.9f)
+				camera.zoom += 0.1f;
+			if (io.MouseWheel < 0 && camera.zoom > 0.5f)
+				camera.zoom -= 0.1f;
+		}
 	}
 	if (ImGui::IsMouseDown(1))
 		ImGui::SetWindowFocus("Canvas");
@@ -275,7 +313,9 @@ void WindowManager::Render()
 		grid.DrawGrid(draw_list, camera);
 	}
 
-	if (focusedWindow && LayerManager::currentLayer->selectedConveyor && LayerManager::currentLayer->selectedConveyor->edit) //draw newline
+	if (focusedWindow && LayerManager::currentLayer->selectedConveyor &&
+		LayerManager::currentLayer->selectedConveyor->edit &&
+		LayerManager::currentLayer->selectedConveyor->selected) //draw newline
 	{
 		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(LayerManager::currentLayer->selectedConveyor->selectedPoint->position),
 			Mouse::liveMousePosition, ImColor(ImVec4(0, 1, 0, 1)), 20 * camera.zoom);

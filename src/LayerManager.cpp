@@ -49,14 +49,18 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 		ImGui::PushID(allLayers[i].id);
 		if (ImGui::Button("move up") && i > 0)
 		{
+			if(&loopedLayer == LayerManager::currentLayer)
+				LayerManager::currentLayer->ClearSelection();
 			Layer tempLayer = allLayers[i];
 			Layer tempLayerPrev = allLayers[i - 1];
 			allLayers[i - 1] = tempLayer;
 			allLayers[i] = tempLayerPrev;
+			
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("move down") && i < allLayers.size() - 1)
 		{
+			LayerManager::currentLayer->ClearSelection();
 			Layer tempLayer = allLayers[i];
 			Layer tempLayerPrev = allLayers[i + 1];
 			allLayers[i + 1] = tempLayer;
@@ -80,6 +84,7 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 		ImGui::SameLine();
 		if (ImGui::Button(selectLabel))
 		{
+			LayerManager::currentLayer->ClearSelection();
 			for (Layer& l : allLayers)
 			{
 				l.UnselectAllConveyors();
@@ -90,7 +95,7 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 				}
 			}
 			loopedLayer.selected = !loopedLayer.selected;
-
+			
 			for (Layer& l : allLayers)
 			{
 				if (l.selected)

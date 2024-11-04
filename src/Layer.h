@@ -21,6 +21,8 @@ public:
 		this->id = layerCount;
 	}
 
+	void ClearSelection();
+
 	void UnselectAllConveyors();
 	void DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, bool snapping);
 	void DrawLayerHeader(Camera& camera, std::vector<int>& deletionList);

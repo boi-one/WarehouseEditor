@@ -76,8 +76,6 @@ int main()
 		//the application code
 		windowManager.Draw();
 
-		//ImGui::ShowDemoWindow();
-
 		// Rendering
 		ImGui::Render();
 		int display_w, display_h;

@@ -3,6 +3,12 @@
 #include "Settings.h"
 bool selected;
 
+void Layer::ClearSelection()
+{
+	this->UnselectAllConveyors();
+	Conveyor::createNewConveyor = true;
+}
+
 void Layer::UnselectAllConveyors()
 {
 	for (Conveyor& c : allConveyors)
@@ -26,7 +32,7 @@ void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, 
 		{
 			currentColor = ImVec4(1, 1, 0, 1);
 		}
-	
+
 		ImVec2 mouseWorldPos;
 		if (snapping) mouseWorldPos = Mouse::snapPosition;
 		else mouseWorldPos = Mouse::liveMousePosition;
@@ -36,7 +42,7 @@ void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, 
 }
 
 void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
-{	
+{
 	ImVec2& SelectedPoint = Mouse::SelectCursorPosition;
 
 	for (int i = 0; i < allConveyors.size(); i++)
@@ -73,32 +79,29 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 			}
 			ImGui::PopStyleColor();
 
-			/*if (allConveyors.size() > 0)
+			if (allConveyors.size() > 0)
 			{
 				ImGui::Text("Points %d", allConveyors.at(i).path.size());
 				for (int j = 0; j < allConveyors.at(i).path.size(); j++)
 				{
 					char buttonLabel[64];
 					snprintf(buttonLabel, sizeof(buttonLabel), "Point %d", j);
-
+				
 					if (ImGui::Button(buttonLabel))
 					{
-						SelectedPoint = allConveyors.at(i).points.at(j);
+						SelectedPoint = allConveyors.at(i).path.at(j).position;
 						camera.position = Tools::AddImVec2(ImVec2(-SelectedPoint.x / camera.zoom, -SelectedPoint.y / camera.zoom), camera.center);
 					}
 					ImGui::SameLine();
-					ImGui::Text("X: %d, Y: %d", -(int)loopedConveyor.points.at(j).x, -(int)loopedConveyor.points.at(j).y);
+					ImGui::Text("X: %d, Y: %d", -(int)loopedConveyor.path.at(j).position.x, -(int)loopedConveyor.path.at(j).position.y);
 				}
-			}*/
+			}
 		}
 		ImGui::PopStyleColor();
 		ImGui::PopID();
 		for (int& i : deletionList)
 		{
-			this->UnselectAllConveyors();
-			this->selectedConveyor->selected = false;
-			Conveyor::createNewConveyor = true;
-			selectedConveyor = 0;
+			ClearSelection();
 			Tools::DeleteFromList(allConveyors, allConveyors.at(i));
 		}
 		deletionList.clear();
@@ -146,9 +149,8 @@ void Layer::CreateConveyor(ImVec2 position, Camera& camera)
 		Conveyor newConveyor(Conveyor::alltimeConveyorCount++);
 		allConveyors.push_back(newConveyor);
 
-		LayerManager::currentLayer->selectedConveyor = &allConveyors[allConveyors.size()-1];
+		LayerManager::currentLayer->selectedConveyor = &allConveyors[allConveyors.size() - 1];
 		Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
-		
 		currentConveyor.selected = true;
 		currentConveyor.edit = true;
 		currentConveyor.path.push_back(point(position));
