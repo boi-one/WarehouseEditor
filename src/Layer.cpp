@@ -18,6 +18,24 @@ void Layer::UnselectAllConveyors()
 	}
 }
 
+void Layer::DrawNewLine(ImDrawList* draw_list, ImVec2& endPosition, Camera& camera, bool focusedWindow)
+{
+	ImVec4 newLineColor = ImVec4(0, 1, 0, 1);
+
+	if (connecting)
+		newLineColor = ImVec4(0.6f, 0.5f, 0.1f, 1);
+
+	if (focusedWindow && LayerManager::currentLayer->selectedConveyor &&
+		LayerManager::currentLayer->selectedConveyor->edit &&
+		LayerManager::currentLayer->selectedConveyor->selected)
+	{
+		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(LayerManager::currentLayer->selectedConveyor->selectedPoint->position),
+			endPosition, ImColor(newLineColor), 20 * camera.zoom); //getting an error because selectedPoint or conveyor is 0?
+	}
+
+
+}
+
 void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, bool snapping)
 {
 	for (Conveyor& c : allConveyors)
@@ -86,7 +104,7 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 				{
 					char buttonLabel[64];
 					snprintf(buttonLabel, sizeof(buttonLabel), "Point %d", j);
-				
+
 					if (ImGui::Button(buttonLabel))
 					{
 						SelectedPoint = allConveyors.at(i).path.at(j).position;
@@ -153,7 +171,7 @@ void Layer::CreateConveyor(ImVec2 position, Camera& camera)
 		Conveyor& currentConveyor = *LayerManager::currentLayer->selectedConveyor;
 		currentConveyor.selected = true;
 		currentConveyor.edit = true;
-		currentConveyor.path.push_back(point(position));
+		currentConveyor.path.emplace_back(position);
 		currentConveyor.selectedPoint = &currentConveyor.path[0];
 	}
 

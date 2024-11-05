@@ -25,10 +25,63 @@ void WindowManager::DrawCanvas()
 
 	if (focusedWindow && LayerManager::currentLayer->selected)
 	{
+		if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
+		{
+			if (!Settings::snapping)
+				Layer::newLineEnd = Mouse::liveMousePosition;
+			else
+				Layer::newLineEnd = Mouse::snapPosition;
+		}
+		else //when pressing lshift find closest point
+		{
+			ImVec2 position = Mouse::liveMousePosition;
+
+			Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position);
+			point& closest = *Conveyor::FindClosestPoint(temp.path, position, camera, 999);
+
+			Layer::newLineEnd = closest.position;
+		}
+
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
 		{
-			ImVec2 position = camera.ToScreenPosition(Mouse::liveMousePosition);
-			LayerManager::currentLayer->CreateConveyor(position, camera);
+			ImVec2 position;
+			if (Settings::snapping)
+				position = camera.ToScreenPosition(Mouse::snapPosition);
+			else
+				position = camera.ToScreenPosition(Mouse::liveMousePosition);
+			if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
+			{
+				LayerManager::currentLayer->CreateConveyor(position, camera);
+			}
+			else //lshift pressed
+			{
+				//find closest point
+				Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position);
+				point& closest = *Conveyor::FindClosestPoint(temp.path, position, camera, 999);
+
+				//add closest point to the connections of the selected point (the point where newline originates from)
+				LayerManager::currentLayer->selectedConveyor->selectedPoint->connections.emplace_back(closest);
+
+				//loop over the points in path in the closest conveyor
+				for (int rootPointIndex = 0; rootPointIndex < temp.path.size(); rootPointIndex++)
+				{
+					point& rootPoint = temp.path.at(rootPointIndex);
+
+					//copy the point over to the path of the selected conveyor (the conveyor currently being edited)
+					point& copiedRootPoint = LayerManager::currentLayer->selectedConveyor->path.emplace_back(rootPoint);
+					for (point& connectedPoint : rootPoint.connections)
+					{
+						//copy over all the connection points the "branches" that aren't connected to any path point
+						copiedRootPoint.connections.emplace_back(connectedPoint);
+					}
+				}
+
+				//set the selected point to the last point of the conveyor which will be the last point of the old connected conveyor
+				LayerManager::currentLayer->selectedConveyor->selectedPoint = &LayerManager::currentLayer->selectedConveyor->path.at(LayerManager::currentLayer->selectedConveyor->path.size() - 1);
+				//^^^^likely causing the problems^^^^^
+				//delete the old conveyor
+				Tools::DeleteFromList(LayerManager::currentLayer->allConveyors, temp);
+			}
 		}
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && focusedWindow && LayerManager::currentLayer->selectedConveyor)
@@ -75,8 +128,6 @@ void WindowManager::DrawCanvas()
 			}
 			if (LayerManager::currentLayer->selectedConveyor->selected)
 			{
-				//moves conveyor (doe dit mogelijk ook voor de camera aangezien je die nu met de pijltjes bestuurd(maar dan moet ook de grid snapping anders gaan werken))
-
 				ImVec2 currentMousePos = ImGui::GetMousePos();
 				ImVec2 difference = ImVec2(currentMousePos.x - dragOffset.x, currentMousePos.y - dragOffset.y);
 				for (point& basePoint : LayerManager::currentLayer->selectedConveyor->path)
@@ -290,13 +341,16 @@ void WindowManager::DrawSettings()
 	}
 }
 
+//! idee voor mergen van 2 conveyors, als je een conveyor selecteerd kan je met shift snappen naar ieder ander punt van iedere conveyor die niet van de selected conveyor is (kiest de closest)
+	//! en op de zelfde lijn
+
+//! maak een verbindings conveyor die 2 conveyors verbind tussen 2 layers in, geef het een andere kleur
+
 void WindowManager::Render()
 {
 	//de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
-	//oude todo:
-	//world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken
-		// want het bebeurt al in de screen/world position. (alle berekeningen doen in world position en dan converten zonder zoom etc.)
-		// denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
+	//world en screen position op centrale plek uitvoeren voor ALLES dus niet zoom op door berekeningen heen gebruiken (alle berekeningen doen in world position en dan converten zonder zoom etc.)
+	// denk aan het schaakbord dat wordt ingezoomt maar nogsteeds de zelfde posities erop heeft
 
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -307,13 +361,7 @@ void WindowManager::Render()
 		grid.DrawGrid(draw_list, camera);
 	}
 
-	if (focusedWindow && LayerManager::currentLayer->selectedConveyor &&
-		LayerManager::currentLayer->selectedConveyor->edit &&
-		LayerManager::currentLayer->selectedConveyor->selected) //draw newline
-	{
-		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(LayerManager::currentLayer->selectedConveyor->selectedPoint->position),
-			Mouse::liveMousePosition, ImColor(ImVec4(0, 1, 0, 1)), 20 * camera.zoom);
-	}
+	LayerManager::currentLayer->DrawNewLine(draw_list, Layer::newLineEnd, camera, focusedWindow);
 
 	for (Layer l : LayerManager::allLayers)
 	{
@@ -329,26 +377,6 @@ void WindowManager::Render()
 			l.DrawConveyors(draw_list, camera, color, Settings::snapping);
 		}
 	}
-
-
-
-
-	////oude conveyor draw code
-	//if (allConveyors.size() > 0 && allConveyors[0].points.size() > 0)
-	//{
-	//	int rectSize = 20 * camera.zoom;
-	//	draw_list->AddRect(camera.ToWorldPosition(ImVec2(Mouse::SelectedPoint.x - rectSize, Mouse::SelectedPoint.y - rectSize)),
-	//		camera.ToWorldPosition(ImVec2(Mouse::SelectedPoint.x + rectSize, mouse.SelectedPoint.y + rectSize)),
-	//		ImColor(ImVec4(1, 0, 0, 1)), 2.0f * camera.zoom);
-
-	//	//Draw newline
-	//	if (editMode && showNewLine && ImGui::IsWindowFocused())
-	//	{
-	//		
-
-	//		draw_list->AddLine(camera.ToWorldPosition(lineStart), mouseWorldPos, ImColor(ImVec4(0, 1, 0, 1)), 20.0f * camera.zoom);
-	//	}
-	//}
 
 	//grid Cursor
 	if (Settings::snapping && Settings::currentMode == Settings::Mode::edit)

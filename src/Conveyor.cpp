@@ -49,9 +49,8 @@ ImVec2 Conveyor::CloseToPoint(Camera& camera, std::vector<point>& path, ImVec2 m
 
 void Conveyor::NewPoint(ImVec2 mouseWorldPos)
 {
-	point newPoint(mouseWorldPos);
-	selectedPoint->connections.push_back(newPoint);
-	path.push_back(selectedPoint->connections[selectedPoint->connections.size() - 1]);
+	point& temp = selectedPoint->connections.emplace_back(mouseWorldPos);
+	path.emplace_back(temp);
 	selectedPoint = &path[path.size() - 1];
 }
 
