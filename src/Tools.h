@@ -52,7 +52,7 @@ public:
 
 		for (int i = 0; i < S; i++)
 		{
-			vec[i] = arr[i];
+			vec.at(i) = arr.at(i);
 		}
 
 		return vec;
@@ -64,7 +64,7 @@ public:
 
 		for (int i = 0; i < S; i++)
 		{
-			arr[i] = vec.at(i);
+			arr.at(i) = vec.at(i);
 		}
 		return arr;
 	}

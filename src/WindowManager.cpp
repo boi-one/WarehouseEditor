@@ -25,22 +25,8 @@ void WindowManager::DrawCanvas()
 
 	if (focusedWindow && LayerManager::currentLayer->selected)
 	{
-		if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
-		{
-			if (!Settings::snapping)
-				Layer::newLineEnd = Mouse::liveMousePosition;
-			else
-				Layer::newLineEnd = Mouse::snapPosition;
-		}
-		else //when pressing lshift find closest point
-		{
-			ImVec2 position = Mouse::liveMousePosition;
 
-			Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position);
-			point& closest = *Conveyor::FindClosestPoint(temp.path, position, camera, 999);
-
-			Layer::newLineEnd = closest.position;
-		}
+		LayerManager::currentLayer->FindConnection(camera);
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
 		{
@@ -51,36 +37,12 @@ void WindowManager::DrawCanvas()
 				position = camera.ToScreenPosition(Mouse::liveMousePosition);
 			if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
 			{
-				LayerManager::currentLayer->CreateConveyor(position, camera);
+				LayerManager::currentLayer->CreateConveyor(camera, position);
 			}
-			else //lshift pressed
+			else //lshift pressed on mouse click
 			{
-				//find closest point
-				Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position);
-				point& closest = *Conveyor::FindClosestPoint(temp.path, position, camera, 999);
-
-				//add closest point to the connections of the selected point (the point where newline originates from)
-				LayerManager::currentLayer->selectedConveyor->selectedPoint->connections.emplace_back(closest);
-
-				//loop over the points in path in the closest conveyor
-				for (int rootPointIndex = 0; rootPointIndex < temp.path.size(); rootPointIndex++)
-				{
-					point& rootPoint = temp.path.at(rootPointIndex);
-
-					//copy the point over to the path of the selected conveyor (the conveyor currently being edited)
-					point& copiedRootPoint = LayerManager::currentLayer->selectedConveyor->path.emplace_back(rootPoint);
-					for (point& connectedPoint : rootPoint.connections)
-					{
-						//copy over all the connection points the "branches" that aren't connected to any path point
-						copiedRootPoint.connections.emplace_back(connectedPoint);
-					}
-				}
-
-				//set the selected point to the last point of the conveyor which will be the last point of the old connected conveyor
-				LayerManager::currentLayer->selectedConveyor->selectedPoint = &LayerManager::currentLayer->selectedConveyor->path.at(LayerManager::currentLayer->selectedConveyor->path.size() - 1);
-				//^^^^likely causing the problems^^^^^
-				//delete the old conveyor
-				Tools::DeleteFromList(LayerManager::currentLayer->allConveyors, temp);
+				//infinite loop??? als niks gevonden wordt
+				LayerManager::currentLayer->EditConveyor(camera, position);
 			}
 		}
 

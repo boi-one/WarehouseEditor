@@ -140,7 +140,6 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin)
 	for (int c = 0; c < allConveyors.size(); c++)
 	{
 		Conveyor& conveyor = allConveyors[c];
-
 		for (int p = 0; p < allConveyors[c].path.size(); p++)
 		{
 			point& point = conveyor.path[p];
@@ -150,16 +149,53 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin)
 			{
 				smallestDistance = distance;
 				closestPoint = &point;
+
 				closestConveyorIndex = c;
 				closestPointIndex = p;
 			}
 		}
 	}
+
+	//selected point word geselecteerd hier zodat als je ee nieuwe conveyor selecteerd hij gelijk de closestpoint returned
 	allConveyors[closestConveyorIndex].selectedPoint = &allConveyors[closestConveyorIndex].path[closestPointIndex];
 	return &allConveyors[closestConveyorIndex];
 }
 
-void Layer::CreateConveyor(ImVec2 position, Camera& camera)
+Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin, Conveyor& selected)
+{
+	float smallestDistance = 99999;
+	point* closestPoint = 0;
+
+	int closestConveyorIndex = -1;
+	int closestPointIndex = -1;
+
+	for (int c = 0; c < allConveyors.size(); c++)
+	{
+		Conveyor& conveyor = allConveyors[c];
+		for (int p = 0; p < allConveyors[c].path.size(); p++)
+		{
+			point& point = conveyor.path[p];
+			ImVec2 position = camera.ToWorldPosition(point.position);
+			float distance = Tools::Magnitude(position, Mouse::liveMousePosition);
+			if (distance < smallestDistance)
+			{
+				smallestDistance = distance;
+				closestPoint = &point;
+
+				if (&allConveyors[c] == &selected) continue;
+				closestConveyorIndex = c;
+				closestPointIndex = p;
+			}
+		}
+	}
+
+	//selected point word geselecteerd hier zodat als je ee nieuwe conveyor selecteerd hij gelijk de closestpoint returned
+	allConveyors[closestConveyorIndex].selectedPoint = &allConveyors[closestConveyorIndex].path[closestPointIndex];
+	return &allConveyors[closestConveyorIndex];
+}
+
+
+void Layer::CreateConveyor(Camera& camera, ImVec2 position)
 {
 	if (Conveyor::createNewConveyor)
 	{
@@ -174,6 +210,8 @@ void Layer::CreateConveyor(ImVec2 position, Camera& camera)
 		currentConveyor.path.emplace_back(position);
 		currentConveyor.selectedPoint = &currentConveyor.path[0];
 	}
+	////////////////////////////////////////////////////////////////////////
+	// opsplitsen in 2 functies
 
 	//edits an existing conveyor or a new conveyor
 	if (!Conveyor::createNewConveyor && LayerManager::currentLayer->selectedConveyor->edit)
@@ -182,4 +220,77 @@ void Layer::CreateConveyor(ImVec2 position, Camera& camera)
 		currentConveyor.NewPoint(position);
 	}
 	Conveyor::createNewConveyor = false;
+}
+
+bool Layer::EditConveyor(Camera& camera, ImVec2& position)
+{
+	if (LayerManager::currentLayer->allConveyors.size() < 2) return false;
+
+	//find closest point
+	Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position);
+	point& closest = *Conveyor::FindClosestPoint(temp.path, position, camera, 100);
+
+	std::cout << temp.path.size() << std::endl;
+
+	if (!&closest)
+		return false;
+
+	std::cout << closest.position.x << " " << closest.position.y << std::endl;
+
+	//add closest point to the connections of the selected point (the point where newline originates from)
+	LayerManager::currentLayer->selectedConveyor->selectedPoint->connections.emplace_back(closest);
+
+	for (int rootPointIndex = 0; rootPointIndex < temp.path.size(); rootPointIndex++)
+	{
+		point& rootPoint = temp.path.at(rootPointIndex);
+
+		//copy the point over to the path of the selected conveyor (the conveyor currently being edited)
+		point& copiedRootPoint = LayerManager::currentLayer->selectedConveyor->path.emplace_back(rootPoint);
+		for (point& connectedPoint : rootPoint.connections)
+		{
+			//copy over all the connection points the "branches" that aren't connected to any path point
+			copiedRootPoint.connections.emplace_back(connectedPoint);
+		}
+	}
+
+	Tools::DeleteFromList(LayerManager::currentLayer->allConveyors, temp);
+
+	Layer::ClearSelection();
+	LayerManager::currentLayer->selectedConveyor = 0;
+	return true;
+}
+
+bool Layer::FindConnection(Camera& camera)
+{
+	if (!LayerManager::currentLayer->selectedConveyor) return false;
+
+	if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
+	{
+		if (!Settings::snapping)
+			Layer::newLineEnd = Mouse::liveMousePosition;
+		else
+			Layer::newLineEnd = Mouse::snapPosition;
+	}
+	else if (LayerManager::currentLayer->allConveyors.size() > 1) //when pressing lshift find closest point
+	{
+		ImVec2 position = Mouse::liveMousePosition;
+
+		Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position, *LayerManager::currentLayer->selectedConveyor);
+		point* closest = Conveyor::FindClosestPoint(temp.path, position, camera, 100);
+
+		if (Tools::FindInList(LayerManager::currentLayer->selectedConveyor->path, *closest))
+		{
+			Layer::newLineEnd = Mouse::liveMousePosition;
+		}
+		if (closest)
+			Layer::newLineEnd = closest->position;
+		else
+			Layer::newLineEnd = Mouse::liveMousePosition;
+	}
+	else
+	{
+		Layer::newLineEnd = Mouse::liveMousePosition;
+	}
+
+	return false;
 }
