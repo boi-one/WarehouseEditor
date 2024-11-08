@@ -12,7 +12,6 @@ using json = nlohmann::json;
 #include "Settings.h"
 #include <iostream>
 
-
 int main()
 {
 	WindowManager windowManager;
@@ -59,7 +58,6 @@ int main()
 
 	while (Settings::appRunning)
 	{
-		
 		SDL_Event event;
 		while (SDL_PollEvent(&event))
 		{
@@ -94,5 +92,6 @@ int main()
 	SDL_GL_DeleteContext(gl_context);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+
 	return 0;
 }

@@ -15,7 +15,7 @@ ImVec2 Conveyor::AveragePointsPosition(std::vector<point> path)
 }
 
 point* Conveyor::FindClosestPoint(std::vector<point>& list, ImVec2& origin, Camera& camera, float range = 999'999)
-{
+{ //is null vandaar de error
 	point* closestPoint = 0;
 
 	for (point& p : list)

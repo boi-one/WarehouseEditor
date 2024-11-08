@@ -1,6 +1,7 @@
 #include "WindowManager.h"
 #include "Grid.h"
 #include "Settings.h"
+#include "WindowManager.h"
 
 void WindowManager::DrawCanvas()
 {
@@ -46,7 +47,7 @@ void WindowManager::DrawCanvas()
 			}
 		}
 
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && focusedWindow && LayerManager::currentLayer->selectedConveyor)
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right) && focusedWindow)
 		{
 			Mouse::rightMouseClickPos = Mouse::liveMousePosition;
 			ImVec2 worldPosRightClick = camera.ToScreenPosition(Mouse::rightMouseClickPos);
@@ -88,7 +89,7 @@ void WindowManager::DrawCanvas()
 
 				dragOffset = ImGui::GetMousePos();
 			}
-			if (LayerManager::currentLayer->selectedConveyor->selected)
+			if (LayerManager::currentLayer->selectedConveyor && LayerManager::currentLayer->selectedConveyor->selected)
 			{
 				ImVec2 currentMousePos = ImGui::GetMousePos();
 				ImVec2 difference = ImVec2(currentMousePos.x - dragOffset.x, currentMousePos.y - dragOffset.y);

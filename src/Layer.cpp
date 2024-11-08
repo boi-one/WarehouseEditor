@@ -175,6 +175,7 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin, Conveyor&
 		for (int p = 0; p < allConveyors[c].path.size(); p++)
 		{
 			point& point = conveyor.path[p];
+
 			ImVec2 position = camera.ToWorldPosition(point.position);
 			float distance = Tools::Magnitude(position, Mouse::liveMousePosition);
 			if (distance < smallestDistance)
@@ -243,7 +244,7 @@ bool Layer::EditConveyor(Camera& camera, ImVec2& position)
 	for (int rootPointIndex = 0; rootPointIndex < temp.path.size(); rootPointIndex++)
 	{
 		point& rootPoint = temp.path.at(rootPointIndex);
-
+		//! grote problemen hier FIX
 		//copy the point over to the path of the selected conveyor (the conveyor currently being edited)
 		point& copiedRootPoint = LayerManager::currentLayer->selectedConveyor->path.emplace_back(rootPoint);
 		for (point& connectedPoint : rootPoint.connections)
@@ -278,7 +279,7 @@ bool Layer::FindConnection(Camera& camera)
 		Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position, *LayerManager::currentLayer->selectedConveyor);
 		point* closest = Conveyor::FindClosestPoint(temp.path, position, camera, 100);
 
-		if (Tools::FindInList(LayerManager::currentLayer->selectedConveyor->path, *closest))
+		if (!Tools::FindInList(LayerManager::currentLayer->selectedConveyor->path, *closest))
 		{
 			Layer::newLineEnd = Mouse::liveMousePosition;
 		}
