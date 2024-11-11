@@ -1,6 +1,8 @@
 #include "Layer.h"
 #include "LayerManager.h"
 #include "Settings.h"
+#include "BridgeConveyor.h"
+
 bool selected;
 
 void Layer::ClearSelection()
@@ -29,8 +31,14 @@ void Layer::DrawNewLine(ImDrawList* draw_list, ImVec2& endPosition, Camera& came
 		LayerManager::currentLayer->selectedConveyor->edit &&
 		LayerManager::currentLayer->selectedConveyor->selected)
 	{
+		if (endPosition.x != Mouse::liveMousePosition.x && endPosition.y != Mouse::liveMousePosition.y)
+		{
+			endPosition = camera.ToWorldPosition(endPosition);
+		}
+
 		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(LayerManager::currentLayer->selectedConveyor->selectedPoint->position),
 			endPosition, ImColor(newLineColor), 20 * camera.zoom);
+		//works when not using the mouse position or the other way around depending on if you use world or screen position
 	}
 
 
@@ -247,7 +255,7 @@ bool Layer::EditConveyor(Camera& camera, ImVec2& position)
 	for (int rootPointIndex = 0; rootPointIndex < temp.path.size(); rootPointIndex++)
 	{
 		point& rootPoint = temp.path.at(rootPointIndex);
-		//! grote problemen hier FIX
+		
 		//copy the point over to the path of the selected conveyor (the conveyor currently being edited)
 		point& copiedRootPoint = LayerManager::currentLayer->selectedConveyor->path.emplace_back(rootPoint);
 		for (point& connectedPoint : rootPoint.connections)
@@ -275,17 +283,13 @@ bool Layer::FindConnection(Camera& camera)
 		else
 			Layer::newLineEnd = Mouse::snapPosition;
 	}
-	else if (LayerManager::currentLayer->allConveyors.size() > 1) //when pressing lshift find closest point
+	else if (LayerManager::currentLayer->allConveyors.size() > 1 && !ImGui::IsKeyDown(ImGuiKey_LeftCtrl)) //when pressing lshift find closest point
 	{
 		ImVec2 position = Mouse::liveMousePosition;
 
 		Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position, *LayerManager::currentLayer->selectedConveyor);
 		point* closest = Conveyor::FindClosestPoint(temp.path, position, camera, 100);
 
-		if (!Tools::FindInList(LayerManager::currentLayer->selectedConveyor->path, *closest))
-		{
-			Layer::newLineEnd = Mouse::liveMousePosition;
-		}
 		if (closest)
 			Layer::newLineEnd = closest->position;
 		else
@@ -294,6 +298,29 @@ bool Layer::FindConnection(Camera& camera)
 	else
 	{
 		Layer::newLineEnd = Mouse::liveMousePosition;
+	}
+
+	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && !ImGui::IsKeyDown(ImGuiKey_LeftShift) && LayerManager::allLayers.size() > 1)
+	{
+		BridgeConveyor newBridge;
+
+		newBridge.conveyor1 = *LayerManager::currentLayer->selectedConveyor;
+		newBridge.bridgePoint1 = *newBridge.conveyor1.selectedPoint;
+
+		for (Layer& l : LayerManager::allLayers)
+		{
+			if (&l == LayerManager::currentLayer) continue;
+
+			for (Conveyor& c : l.allConveyors)
+			{
+				for (point& p : c.path)
+				{
+					newBridge.conveyor2 = *LayerManager::FindClosestPointInLayers(LayerManager::allLayers, Mouse::liveMousePosition, camera, 999'999);
+					newBridge.bridgePoint2 = *newBridge.conveyor2.selectedPoint;
+				}
+			}
+		}
+		Layer::newLineEnd = newBridge.bridgePoint2.position;
 	}
 
 	return false;

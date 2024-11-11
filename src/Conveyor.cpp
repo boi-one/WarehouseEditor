@@ -14,9 +14,11 @@ ImVec2 Conveyor::AveragePointsPosition(std::vector<point> path)
 	return Tools::AverageVec2(positions);
 }
 
-point* Conveyor::FindClosestPoint(std::vector<point>& list, ImVec2& origin, Camera& camera, float range = 999'999)
-{ //is null vandaar de error
+point* Conveyor::FindClosestPoint(std::vector<point>& list, ImVec2& origin, Camera& camera, float range)
+{//dit is null wanneer je 2 conveyors aan elkaar probeerd te verbinden terwijl je de camera hebt bewogen. //! TODO: FIX
 	point* closestPoint = 0;
+
+	if (!&list) return 0;
 
 	for (point& p : list)
 	{

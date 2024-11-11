@@ -19,6 +19,7 @@
 - [ ] convenience
     - [x] 2d grid
     - [x] snap to grid
+    ###### after refactor:
     - [ ] copy paste
     - [ ] undo  redo
 - [ ] create a 3d view in pure opengl

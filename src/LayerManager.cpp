@@ -32,7 +32,7 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 
 		char layerLabel[64];
 		snprintf(layerLabel, sizeof(layerLabel), "%d. Layer: %s\nitems %d", i, loopedLayer.name.c_str(), (int)loopedLayer.allConveyors.size());
-		
+
 		if (loopedLayer.selected)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0.3f, 0.2f, 1));
@@ -49,13 +49,13 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 		ImGui::PushID(allLayers[i].id);
 		if (ImGui::Button("move up") && i > 0)
 		{
-			if(&loopedLayer == LayerManager::currentLayer)
+			if (&loopedLayer == LayerManager::currentLayer)
 				LayerManager::currentLayer->ClearSelection();
 			Layer tempLayer = allLayers[i];
 			Layer tempLayerPrev = allLayers[i - 1];
 			allLayers[i - 1] = tempLayer;
 			allLayers[i] = tempLayerPrev;
-			
+
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("move down") && i < allLayers.size() - 1)
@@ -95,7 +95,7 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 				}
 			}
 			loopedLayer.selected = !loopedLayer.selected;
-			
+
 			for (Layer& l : allLayers)
 			{
 				if (l.selected)
@@ -144,4 +144,39 @@ void LayerManager::AddLayer()
 	allLayers.push_back(layer);
 	if (allLayers.size() < 2)
 		allLayers.at(0).selected = true;
+}
+
+Conveyor* LayerManager::FindClosestPointInLayers(std::vector<Layer>& list, ImVec2& origin, Camera& camera, float range = 999'999)
+{
+	Conveyor* closestConveyor = 0;
+	point* closestPoint = 0;
+
+	for (Layer& l : list)
+	{
+		for (int c = 0; c < l.allConveyors.size(); c++)
+		{
+			Conveyor& conveyor = l.allConveyors[c];
+
+			for (point& p : conveyor.path)
+			{
+				ImVec2 convertedP = camera.ToWorldPosition(p.position);
+				float distance = Tools::Magnitude(convertedP, origin);
+				if (distance < range)
+				{
+					range = distance;
+					closestPoint = &p;
+
+					int positionInList = Tools::FindInList(conveyor.path, *closestPoint);
+
+					if (positionInList > -1 && positionInList < l.allConveyors.size())
+					{
+						closestConveyor = &l.allConveyors[positionInList];
+						closestConveyor->selectedPoint = &p;
+					}
+				}
+			}
+		}
+	}
+
+	return closestConveyor;
 }
