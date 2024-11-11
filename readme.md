@@ -1,5 +1,5 @@
 
-##### How to build:
+#### How to build:
 
 1. install cmake
 
@@ -7,7 +7,9 @@
 
 3. go to the build directory in the commandline and type `cmake ..`
 
-##### TODO:
+---
+
+#### TODO:
 - [x] camera
     - [x] position
     - [x] zoom
