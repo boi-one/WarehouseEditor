@@ -1,3 +1,13 @@
+
+##### How to build:
+
+1. install cmake
+
+2. create a new directory in the root
+
+3. go to the build directory in the commandline and type `cmake ..`
+
+##### TODO:
 - [x] camera
     - [x] position
     - [x] zoom
