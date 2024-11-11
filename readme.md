@@ -4,7 +4,7 @@ An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGu
 
 ---
 
-#### How to build:
+### How to build:
 
 1. install cmake
 
@@ -14,7 +14,7 @@ An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGu
 
 ---
 
-#### TODO:
+### TODO:
 - [x] camera
     - [x] position
     - [x] zoom
