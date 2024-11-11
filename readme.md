@@ -3,7 +3,7 @@
 
 1. install cmake
 
-2. create a new directory in the root
+2. create a new directory in the root called `build`
 
 3. go to the build directory in the commandline and type `cmake ..`
 
