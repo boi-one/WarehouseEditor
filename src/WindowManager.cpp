@@ -26,7 +26,6 @@ void WindowManager::DrawCanvas()
 
 	if (focusedWindow && LayerManager::currentLayer->selected)
 	{
-
 		LayerManager::currentLayer->FindConnection(camera);
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
@@ -42,7 +41,6 @@ void WindowManager::DrawCanvas()
 			}
 			else //lshift pressed on mouse click
 			{
-				//infinite loop??? als niks gevonden wordt
 				LayerManager::currentLayer->EditConveyor(camera, position);
 			}
 		}

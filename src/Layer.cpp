@@ -30,7 +30,7 @@ void Layer::DrawNewLine(ImDrawList* draw_list, ImVec2& endPosition, Camera& came
 		LayerManager::currentLayer->selectedConveyor->selected)
 	{
 		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(LayerManager::currentLayer->selectedConveyor->selectedPoint->position),
-			endPosition, ImColor(newLineColor), 20 * camera.zoom); //getting an error because selectedPoint or conveyor is 0?
+			endPosition, ImColor(newLineColor), 20 * camera.zoom);
 	}
 
 
@@ -190,9 +190,13 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin, Conveyor&
 		}
 	}
 
-	//selected point word geselecteerd hier zodat als je ee nieuwe conveyor selecteerd hij gelijk de closestpoint returned
-	allConveyors[closestConveyorIndex].selectedPoint = &allConveyors[closestConveyorIndex].path[closestPointIndex];
-	return &allConveyors[closestConveyorIndex];
+	//selected point gets selected here so when you select a new conveyor it instantly returns the closest point
+	if (closestConveyorIndex > -1 || closestPointIndex > -1)
+	{
+		allConveyors[closestConveyorIndex].selectedPoint = &allConveyors[closestConveyorIndex].path[closestPointIndex];
+		return &allConveyors[closestConveyorIndex];
+	}
+	return 0;
 }
 
 
@@ -228,10 +232,8 @@ bool Layer::EditConveyor(Camera& camera, ImVec2& position)
 	if (LayerManager::currentLayer->allConveyors.size() < 2) return false;
 
 	//find closest point
-	Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position);
+	Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position, *LayerManager::currentLayer->selectedConveyor);
 	point& closest = *Conveyor::FindClosestPoint(temp.path, position, camera, 100);
-
-	std::cout << temp.path.size() << std::endl;
 
 	if (!&closest)
 		return false;
@@ -239,7 +241,8 @@ bool Layer::EditConveyor(Camera& camera, ImVec2& position)
 	std::cout << closest.position.x << " " << closest.position.y << std::endl;
 
 	//add closest point to the connections of the selected point (the point where newline originates from)
-	LayerManager::currentLayer->selectedConveyor->selectedPoint->connections.emplace_back(closest);
+	if(selectedConveyor)
+		LayerManager::currentLayer->selectedConveyor->selectedPoint->connections.emplace_back(closest);
 
 	for (int rootPointIndex = 0; rootPointIndex < temp.path.size(); rootPointIndex++)
 	{
