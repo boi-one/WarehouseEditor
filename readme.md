@@ -1,3 +1,6 @@
+An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGui and OpenGL
+
+---
 
 #### How to build:
 
