@@ -3,9 +3,9 @@
     - [x] zoom
     - [x] move
         - [ ] with mouse
-- [ ] conveyor
+- [x] conveyor
     - [x] edit path
-    - [ ] connect conveyors
+    - [x] connect conveyors
     - [x] selectable
     - [x] delete
     - [x] move with mouse
