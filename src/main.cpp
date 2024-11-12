@@ -55,7 +55,6 @@ int main()
 	ImGuiIO& io = ImGui::GetIO();
 
 	// Main loop
-
 	while (Settings::appRunning)
 	{
 		SDL_Event event;

@@ -185,7 +185,7 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin, Conveyor&
 			point& point = conveyor.path[p];
 
 			ImVec2 position = camera.ToWorldPosition(point.position);
-			float distance = Tools::Magnitude(position, Mouse::liveMousePosition);
+			float distance = Tools::Magnitude(position, origin);
 			if (distance < smallestDistance)
 			{
 				smallestDistance = distance;
@@ -224,7 +224,7 @@ void Layer::CreateConveyor(Camera& camera, ImVec2 position)
 		currentConveyor.selectedPoint = &currentConveyor.path[0];
 	}
 	////////////////////////////////////////////////////////////////////////
-	// opsplitsen in 2 functies
+	// move to 2 different functions
 
 	//edits an existing conveyor or a new conveyor
 	if (!Conveyor::createNewConveyor && LayerManager::currentLayer->selectedConveyor->edit)
@@ -241,16 +241,20 @@ bool Layer::EditConveyor(Camera& camera, ImVec2& position)
 
 	//find closest point
 	Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position, *LayerManager::currentLayer->selectedConveyor);
-	point& closest = *Conveyor::FindClosestPoint(temp.path, position, camera, 100);
+	point* closest = 0;
+	
+	if(&temp)
+		closest = Conveyor::FindClosestPoint(temp.path, position, camera, 100);
 
-	if (!&closest)
+	std::cout << "closest* " << closest << std::endl;
+	
+	if (!closest)
 		return false;
 
-	std::cout << closest.position.x << " " << closest.position.y << std::endl;
-
 	//add closest point to the connections of the selected point (the point where newline originates from)
-	if(selectedConveyor)
-		LayerManager::currentLayer->selectedConveyor->selectedPoint->connections.emplace_back(closest);
+	if (selectedConveyor)
+		LayerManager::currentLayer->selectedConveyor->selectedPoint->connections.emplace_back(*closest);
+	else return false;
 
 	for (int rootPointIndex = 0; rootPointIndex < temp.path.size(); rootPointIndex++)
 	{
@@ -272,12 +276,12 @@ bool Layer::EditConveyor(Camera& camera, ImVec2& position)
 	return true;
 }
 
-bool Layer::FindConnection(Camera& camera)
+bool Layer::FindConnection(Camera& camera, ImVec2 newLineEnd)
 {
 	if (!LayerManager::currentLayer->selectedConveyor) return false;
 
 	if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
-	{
+	{ //! todo dit zorgt ervoor dat er een offset is met het connecten van 2 conveyors
 		if (!Settings::snapping)
 			Layer::newLineEnd = Mouse::liveMousePosition;
 		else
@@ -287,8 +291,10 @@ bool Layer::FindConnection(Camera& camera)
 	{
 		ImVec2 position = Mouse::liveMousePosition;
 
-		Conveyor& temp = *LayerManager::currentLayer->ReturnClosestConveyor(camera, position, *LayerManager::currentLayer->selectedConveyor);
-		point* closest = Conveyor::FindClosestPoint(temp.path, position, camera, 100);
+		Conveyor* temp = LayerManager::currentLayer->ReturnClosestConveyor(camera, position, *LayerManager::currentLayer->selectedConveyor);
+		point* closest = 0;
+		if(temp)
+			closest = Conveyor::FindClosestPoint(temp->path, position, camera, 100);
 
 		if (closest)
 			Layer::newLineEnd = closest->position;
@@ -307,20 +313,20 @@ bool Layer::FindConnection(Camera& camera)
 		newBridge.conveyor1 = *LayerManager::currentLayer->selectedConveyor;
 		newBridge.bridgePoint1 = *newBridge.conveyor1.selectedPoint;
 
-		for (Layer& l : LayerManager::allLayers)
+		/*for (Layer& l : LayerManager::allLayers)
 		{
 			if (&l == LayerManager::currentLayer) continue;
-
 			for (Conveyor& c : l.allConveyors)
 			{
 				for (point& p : c.path)
 				{
-					newBridge.conveyor2 = *LayerManager::FindClosestPointInLayers(LayerManager::allLayers, Mouse::liveMousePosition, camera, 999'999);
-					newBridge.bridgePoint2 = *newBridge.conveyor2.selectedPoint;
+					
 				}
-			}
-		}
+			}*/
+		newBridge.conveyor2 = *LayerManager::FindClosestPointInLayers(LayerManager::allLayers, Mouse::liveMousePosition, camera, 999'999);
+		newBridge.bridgePoint2 = *newBridge.conveyor2.selectedPoint;
 		Layer::newLineEnd = newBridge.bridgePoint2.position;
+		//}
 	}
 
 	return false;

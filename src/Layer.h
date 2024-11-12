@@ -34,5 +34,5 @@ public:
 	Conveyor* ReturnClosestConveyor(Camera& camera, ImVec2& origin, Conveyor& selected);
 	void CreateConveyor(Camera& camera, ImVec2 position);
 	bool EditConveyor(Camera& camera, ImVec2& position);
-	bool FindConnection(Camera& camera);
+	bool FindConnection(Camera& camera, ImVec2 newLineEnd);
 };

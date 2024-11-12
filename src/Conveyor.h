@@ -49,7 +49,7 @@ public:
 			path.size() == other.path.size();
 	}
 
-	static ImVec2 CloseToPoint(Camera& camera, std::vector<point>& path, ImVec2 mouseWorldPos);
+	static ImVec2 ClosestVector(Camera& camera, std::vector<point>& path, ImVec2 mouseWorldPos);
 
 	void NewPoint(ImVec2 mouseWorldPos);
 };
