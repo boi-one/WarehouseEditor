@@ -1,9 +1,11 @@
 #include "Layer.h"
+#include "BridgeConveyor.h" 
 
 class LayerManager 
 {
 public:
 	inline static std::vector<Layer> allLayers;
+	inline static std::vector<BridgeConveyor> allBridgeConveyors;
 	inline static Layer* currentLayer;
 public:
 	static void ManageLayers(Camera& camera, std::vector<int>& deletionList);

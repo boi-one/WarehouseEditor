@@ -35,4 +35,5 @@ public:
 	void CreateConveyor(Camera& camera, ImVec2 position);
 	bool EditConveyor(Camera& camera, ImVec2& position);
 	bool FindConnection(Camera& camera, ImVec2 newLineEnd);
+	void CreateBridgePoint(Camera& camera, ImVec2& position);
 };

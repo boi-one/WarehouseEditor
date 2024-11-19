@@ -14,6 +14,7 @@ public:
 	bool edit = false;
 	point* selectedPoint;
 	static inline bool createNewConveyor = true;
+	std::vector<Conveyor*> connectedConveyors;
 
 	Conveyor() = default;
 	Conveyor(int id)
@@ -25,7 +26,9 @@ public:
 
 	static point* FindClosestPoint(std::vector<point*>& list, ImVec2& origin, Camera& camera, float range);
 
-	static point* FindClosestPoint(std::vector<point>& list, ImVec2& origin, Camera& camera, float range);
+	static point* FindClosestPointInWorld(std::vector<point>& list, ImVec2& origin, Camera& camera, float range);
+
+	static point* FindClosestPointOnScreen(std::vector<point>& list, ImVec2& origin, Camera& camera, float range);
 
 	void DrawConveyorHeader();
 

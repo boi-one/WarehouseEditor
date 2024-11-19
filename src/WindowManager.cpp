@@ -28,7 +28,7 @@ void WindowManager::DrawCanvas()
 	{
 		LayerManager::currentLayer->FindConnection(camera, {0, 0});
 
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
 		{
 			ImVec2 position;
 			if (Settings::snapping)
@@ -37,7 +37,7 @@ void WindowManager::DrawCanvas()
 				position = camera.ToScreenPosition(Mouse::liveMousePosition);
 			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 			{
-				LayerManager::currentLayer->EditConveyor(camera, position);
+				LayerManager::currentLayer->EditConveyor(camera, Mouse::liveMousePosition);
 			}
 			else //regular click without lshift
 			{
@@ -75,12 +75,10 @@ void WindowManager::DrawCanvas()
 				}
 				else
 				{
-					LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
+					LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPointInWorld(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
 				}
 			} break;
 			}
-
-
 		}
 		static ImVec2 dragOffset;
 		if (ImGui::IsMouseDown(ImGuiMouseButton_Middle))
@@ -337,7 +335,10 @@ void WindowManager::Render()
 
 			l.DrawConveyors(draw_list, camera, color, Settings::snapping);
 		}
+		for (BridgeConveyor bc : LayerManager::allBridgeConveyors)
+			bc.DrawBridgeConveyor(draw_list, camera);
 	}
+
 
 	//grid Cursor
 	if (Settings::snapping && Settings::currentMode == Settings::Mode::edit)

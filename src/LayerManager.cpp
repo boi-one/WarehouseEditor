@@ -171,7 +171,7 @@ Conveyor* LayerManager::FindClosestPointInLayers(std::vector<Layer>& list, ImVec
 					if (positionInList > -1 && positionInList < l.allConveyors.size())
 					{
 						closestConveyor = &l.allConveyors[positionInList];
-						closestConveyor->selectedPoint = &p;
+						closestConveyor->selectedPoint = closestPoint;
 					}
 				}
 			}
