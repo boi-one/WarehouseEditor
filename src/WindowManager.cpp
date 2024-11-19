@@ -26,7 +26,7 @@ void WindowManager::DrawCanvas()
 
 	if (focusedWindow && LayerManager::currentLayer->selected)
 	{
-		LayerManager::currentLayer->FindConnection(camera, {0, 0});
+		LayerManager::currentLayer->FindConnection(camera, { 0, 0 });
 
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
 		{
@@ -41,7 +41,7 @@ void WindowManager::DrawCanvas()
 			}
 			else //regular click without lshift
 			{
-				LayerManager::currentLayer->CreateConveyor(camera, position);
+				LayerManager::currentLayer->CreateConveyor(position);
 			}
 		}
 
@@ -320,6 +320,9 @@ void WindowManager::Render()
 		grid.DrawGrid(draw_list, camera);
 	}
 
+	for (BridgeConveyor bc : LayerManager::allBridgeConveyors)
+		bc.DrawBridgeConveyor(draw_list, camera);
+
 	LayerManager::currentLayer->DrawNewLine(draw_list, Layer::newLineEnd, camera, focusedWindow);
 
 	for (Layer l : LayerManager::allLayers)
@@ -335,10 +338,7 @@ void WindowManager::Render()
 
 			l.DrawConveyors(draw_list, camera, color, Settings::snapping);
 		}
-		for (BridgeConveyor bc : LayerManager::allBridgeConveyors)
-			bc.DrawBridgeConveyor(draw_list, camera);
 	}
-
 
 	//grid Cursor
 	if (Settings::snapping && Settings::currentMode == Settings::Mode::edit)

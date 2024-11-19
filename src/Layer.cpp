@@ -136,8 +136,8 @@ void Layer::DrawLayerHeader(Camera& camera, std::vector<int>& deletionList)
 /// <summary>
 /// returns the closest conveyor on the screen
 /// </summary>
-/// <param name="camera:"> used to convert the mouse position into worldspace </param>
-/// <param name="origin:"> the point closest to the conveyor </param>
+/// <param name="camera"> is used to convert the mouse position into worldspace </param>
+/// <param name="origin"> is the point closest to the conveyor </param>
 /// <returns></returns>
 Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin)
 {
@@ -211,7 +211,7 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin, Conveyor&
 }
 
 
-void Layer::CreateConveyor(Camera& camera, ImVec2 position)
+void Layer::CreateConveyor(ImVec2 position)
 {
 	if (Conveyor::createNewConveyor)
 	{
@@ -327,7 +327,8 @@ void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
 		if (indexConveyor)
 			LayerManager::currentLayer->selectedConveyor->connectedConveyors.emplace_back(indexConveyor);
 		newBridge.bridgePoint2 = &closest;
-		Layer::newLineEnd = newBridge.bridgePoint2->position;
+		if(newBridge.bridgePoint2)
+			Layer::newLineEnd = newBridge.bridgePoint2->position;
 	}
 }
 

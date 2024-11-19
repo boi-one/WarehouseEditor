@@ -145,38 +145,3 @@ void LayerManager::AddLayer()
 	if (allLayers.size() < 2)
 		allLayers.at(0).selected = true;
 }
-
-Conveyor* LayerManager::FindClosestPointInLayers(std::vector<Layer>& list, ImVec2& origin, Camera& camera, float range = 999'999)
-{
-	Conveyor* closestConveyor = 0;
-	point* closestPoint = 0;
-
-	for (Layer& l : list)
-	{
-		for (int c = 0; c < l.allConveyors.size(); c++)
-		{
-			Conveyor& conveyor = l.allConveyors[c];
-
-			for (point& p : conveyor.path)
-			{
-				ImVec2 convertedP = camera.ToWorldPosition(p.position);
-				float distance = Tools::Magnitude(convertedP, origin);
-				if (distance < range)
-				{
-					range = distance;
-					closestPoint = &p;
-
-					int positionInList = Tools::FindInList(conveyor.path, *closestPoint);
-
-					if (positionInList > -1 && positionInList < l.allConveyors.size())
-					{
-						closestConveyor = &l.allConveyors[positionInList];
-						closestConveyor->selectedPoint = closestPoint;
-					}
-				}
-			}
-		}
-	}
-
-	return closestConveyor;
-}

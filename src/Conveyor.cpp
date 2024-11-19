@@ -32,21 +32,6 @@ point* Conveyor::FindClosestPointInWorld(std::vector<point>& list, ImVec2& origi
 	return closestPoint;
 }
 
-ImVec2 Conveyor::ClosestVector(Camera& camera, std::vector<point>& path, ImVec2 mouseWorldPos)
-{
-	ImVec2 endPosition;
-	ImVec2 closestPointToMouse = Conveyor::FindClosestPointInWorld(path, Mouse::liveMousePosition, camera, 999'999)->position;
-
-	if (Tools::Magnitude(closestPointToMouse, Mouse::liveMousePosition) < 30)
-	{
-		endPosition = closestPointToMouse;
-	}
-	else
-		endPosition = Mouse::liveMousePosition;
-
-	return endPosition;
-}
-
 void Conveyor::NewPoint(ImVec2 mouseWorldPos)
 {
 	point& temp = selectedPoint->connections.emplace_back(mouseWorldPos);
