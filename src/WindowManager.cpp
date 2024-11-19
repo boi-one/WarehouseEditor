@@ -357,9 +357,7 @@ void WindowManager::Render()
 
 void WindowManager::Draw()
 {
-	//the logic for the canvas region
 	DrawCanvas();
-	//the logic for the settings region on the right
 	DrawSettings();
 	//need to rename it
 }

@@ -34,13 +34,12 @@ void Layer::DrawNewLine(ImDrawList* draw_list, ImVec2& endPosition, Camera& came
 		{
 			endPosition = camera.ToWorldPosition(endPosition);
 		}
-
+		//! TODO: FIX THSI DONT DIRECTLY DELETE LAYERS BC THSI WILL CRASH
+		//! only delete after all the layers are looped over do something similar to the deletion layer used with the conveyors
 		ImGui::GetWindowDrawList()->AddLine(camera.ToWorldPosition(LayerManager::currentLayer->selectedConveyor->selectedPoint->position),
 			endPosition, ImColor(newLineColor), 20 * camera.zoom);
 		//works when not using the mouse position or the other way around depending on if you use world or screen position
 	}
-
-
 }
 
 void Layer::DrawConveyors(ImDrawList* draw_list, Camera& camera, ImVec4& color, bool snapping)
@@ -327,7 +326,7 @@ void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
 		if (indexConveyor)
 			LayerManager::currentLayer->selectedConveyor->connectedConveyors.emplace_back(indexConveyor);
 		newBridge.bridgePoint2 = &closest;
-		if(newBridge.bridgePoint2)
+		if (newBridge.bridgePoint2)
 			Layer::newLineEnd = newBridge.bridgePoint2->position;
 	}
 }
@@ -367,6 +366,7 @@ bool Layer::FindConnection(Camera& camera, ImVec2 newLineEnd)
 			Layer::newLineEnd = Mouse::liveMousePosition;
 
 	}
+
 
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{
