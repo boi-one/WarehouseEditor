@@ -26,8 +26,8 @@ An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGu
     - [x] selectable
     - [x] delete
     - [x] move with mouse
-- [ ] layers
-    - [ ] connect between layers
+- [x] layers
+    - [x] connect between layers
     - [x] show layers
     - [x] delete layers
     - [x] reorder layers
