@@ -1,3 +1,20 @@
+## Warehouse Editor
+
+An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGui and OpenGL
+
+---
+
+### How to build:
+
+1. install cmake
+
+2. create a new directory in the root called `build`
+
+3. go to the build directory in the commandline and type `cmake ..`
+
+---
+
+### TODO:
 - [x] camera
     - [x] position
     - [x] zoom
@@ -19,6 +36,7 @@
 - [ ] convenience
     - [x] 2d grid
     - [x] snap to grid
+    ###### after refactor:
     - [ ] copy paste
     - [ ] undo  redo
 - [ ] create a 3d view in pure opengl

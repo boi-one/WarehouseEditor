@@ -2,6 +2,9 @@
 #include "imgui.h"
 #include "Tools.h"
 
+/// <summary>
+/// The camera keeps track of the width and the height of the screen
+/// </summary>
 class Camera
 {
 public:
@@ -25,9 +28,22 @@ public:
 	}
 
 	
-
+	/// <summary>
+	/// Converts the given position to world position
+	/// </summary>
+	/// <param name="pos"> is the position you want to convert to world position</param>
+	/// <returns></returns>
 	ImVec2 ToWorldPosition(ImVec2 pos);
+	
+	/// <summary>
+	/// Converts the given position to screen position
+	/// </summary>
+	/// <param name="pos"> is the position you want to convert to screen position</param>
+	/// <returns></returns>
 	ImVec2 ToScreenPosition(ImVec2 pos);
 	
+	/// <summary>
+	/// Updates the camera values every time it is called
+	/// </summary>
 	void UpdateCamera();
 };

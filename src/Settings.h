@@ -1,3 +1,6 @@
+/// <summary>
+/// A place with some bools and an enum to track which buttons are toggled.
+/// </summary>
 class Settings
 {
 public:

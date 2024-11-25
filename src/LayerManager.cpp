@@ -32,7 +32,7 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 
 		char layerLabel[64];
 		snprintf(layerLabel, sizeof(layerLabel), "%d. Layer: %s\nitems %d", i, loopedLayer.name.c_str(), (int)loopedLayer.allConveyors.size());
-		
+
 		if (loopedLayer.selected)
 		{
 			ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0, 0.3f, 0.2f, 1));
@@ -49,13 +49,13 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 		ImGui::PushID(allLayers[i].id);
 		if (ImGui::Button("move up") && i > 0)
 		{
-			if(&loopedLayer == LayerManager::currentLayer)
+			if (&loopedLayer == LayerManager::currentLayer)
 				LayerManager::currentLayer->ClearSelection();
 			Layer tempLayer = allLayers[i];
 			Layer tempLayerPrev = allLayers[i - 1];
 			allLayers[i - 1] = tempLayer;
 			allLayers[i] = tempLayerPrev;
-			
+
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("move down") && i < allLayers.size() - 1)
@@ -95,7 +95,7 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 				}
 			}
 			loopedLayer.selected = !loopedLayer.selected;
-			
+
 			for (Layer& l : allLayers)
 			{
 				if (l.selected)

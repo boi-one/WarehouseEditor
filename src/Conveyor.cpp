@@ -14,8 +14,8 @@ ImVec2 Conveyor::AveragePointsPosition(std::vector<point> path)
 	return Tools::AverageVec2(positions);
 }
 
-point* Conveyor::FindClosestPoint(std::vector<point>& list, ImVec2& origin, Camera& camera, float range = 999'999)
-{ //is null vandaar de error
+point* Conveyor::FindClosestPointInWorld(std::vector<point>& list, ImVec2& origin, Camera& camera, float range)
+{
 	point* closestPoint = 0;
 
 	for (point& p : list)
@@ -30,21 +30,6 @@ point* Conveyor::FindClosestPoint(std::vector<point>& list, ImVec2& origin, Came
 	}
 
 	return closestPoint;
-}
-
-ImVec2 Conveyor::CloseToPoint(Camera& camera, std::vector<point>& path, ImVec2 mouseWorldPos)
-{
-	ImVec2 endPosition;
-	ImVec2 closestPointToMouse = Conveyor::FindClosestPoint(path, Mouse::liveMousePosition, camera, 999'999)->position;
-
-	if (Tools::Magnitude(closestPointToMouse, Mouse::liveMousePosition) < 30)
-	{
-		endPosition = closestPointToMouse;
-	}
-	else
-		endPosition = Mouse::liveMousePosition;
-
-	return endPosition;
 }
 
 void Conveyor::NewPoint(ImVec2 mouseWorldPos)
@@ -62,4 +47,3 @@ void Conveyor::Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camer
 		p.Draw(color, camera, thickness);
 	}
 }
-

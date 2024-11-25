@@ -9,11 +9,6 @@ float Tools::Magnitude(ImVec2 p1, ImVec2 p2)
 	return sqrt(dx * dx + dy * dy);
 }
 
-ImVec2 Tools::AddOffset(ImVec2 start)
-{
-	return ImVec2(ImGui::GetMousePos().x - start.x, ImGui::GetMousePos().y - start.y);
-}
-
 ImVec2 Tools::AddImVec2(ImVec2 v1, float f)
 {
 	return ImVec2(v1.x + f, v1.y + f);

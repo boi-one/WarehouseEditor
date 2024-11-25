@@ -26,22 +26,22 @@ void WindowManager::DrawCanvas()
 
 	if (focusedWindow && LayerManager::currentLayer->selected)
 	{
-		LayerManager::currentLayer->FindConnection(camera);
+		LayerManager::currentLayer->FindConnection(camera, { 0, 0 });
 
-		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && Mouse::canvasFocus && LayerManager::currentLayer->selected && Settings::currentMode == Settings::Mode::edit)
 		{
 			ImVec2 position;
 			if (Settings::snapping)
 				position = camera.ToScreenPosition(Mouse::snapPosition);
 			else
 				position = camera.ToScreenPosition(Mouse::liveMousePosition);
-			if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
+			if (ImGui::IsKeyDown(ImGuiKey_LeftShift))
 			{
-				LayerManager::currentLayer->CreateConveyor(camera, position);
+				LayerManager::currentLayer->EditConveyor(camera, Mouse::liveMousePosition);
 			}
-			else //lshift pressed on mouse click
+			else //regular click without lshift
 			{
-				LayerManager::currentLayer->EditConveyor(camera, position);
+				LayerManager::currentLayer->CreateConveyor(position);
 			}
 		}
 
@@ -58,13 +58,16 @@ void WindowManager::DrawCanvas()
 			} break;
 			case Settings::Mode::move:
 			{
+				if (LayerManager::currentLayer->allConveyors.size() < 1) break;
+				LayerManager::currentLayer->ClearSelection();
 				LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, Mouse::liveMousePosition);
 				LayerManager::currentLayer->selectedConveyor->selected = true;
 			} break;
 			case Settings::Mode::edit:
 			{
-				if (Conveyor::createNewConveyor)
+				if (Conveyor::createNewConveyor && LayerManager::currentLayer)
 				{
+					if (LayerManager::currentLayer->allConveyors.size() < 1) break;
 					LayerManager::currentLayer->selectedConveyor = LayerManager::currentLayer->ReturnClosestConveyor(camera, Mouse::liveMousePosition);
 					Conveyor::createNewConveyor = false;
 					LayerManager::currentLayer->selectedConveyor->selected = true;
@@ -72,7 +75,7 @@ void WindowManager::DrawCanvas()
 				}
 				else
 				{
-					LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPoint(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
+					LayerManager::currentLayer->selectedConveyor->selectedPoint = Conveyor::FindClosestPointInWorld(LayerManager::currentLayer->selectedConveyor->path, worldPosRightClick, camera, 9'999);
 				}
 			} break;
 			}
@@ -153,7 +156,7 @@ void WindowManager::DrawCanvas()
 	if (ImGui::IsMouseDown(1))
 		ImGui::SetWindowFocus("Canvas");
 
-	if (ImGui::IsKeyPressed(ImGuiKey_R)) //resets the camera to 0
+	if (ImGui::IsKeyPressed(ImGuiKey_R)) //resets the camera to default values
 	{
 		camera.position = ImVec2(0, 0);
 		camera.zoom = 1.0f;
@@ -178,12 +181,6 @@ void WindowManager::DrawCanvas()
 			edit = false;
 
 		}
-
-		/*for (Layer& l : LayerManager::allLayers)
-		{
-			l.UnselectAllConveyors();
-			Mouse::SelectCursorPosition = ImVec2(camera.position.x - 1000, camera.position.y);
-		}*/
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Slash))
 	{
@@ -302,11 +299,6 @@ void WindowManager::DrawSettings()
 	}
 }
 
-//! idee voor mergen van 2 conveyors, als je een conveyor selecteerd kan je met shift snappen naar ieder ander punt van iedere conveyor die niet van de selected conveyor is (kiest de closest)
-	//! en op de zelfde lijn
-
-//! maak een verbindings conveyor die 2 conveyors verbind tussen 2 layers in, geef het een andere kleur
-
 void WindowManager::Render()
 {
 	//de enige plek waar to world en to screen gebruikt mogen worden (nadat alle punten in de code geconvert zijn naar to world(?))
@@ -323,6 +315,10 @@ void WindowManager::Render()
 	}
 
 	LayerManager::currentLayer->DrawNewLine(draw_list, Layer::newLineEnd, camera, focusedWindow);
+
+	for (BridgeConveyor bc : LayerManager::allBridgeConveyors)
+		bc.DrawBridgeConveyor(draw_list, camera, LayerManager::allLayers);
+
 
 	for (Layer l : LayerManager::allLayers)
 	{
@@ -356,9 +352,7 @@ void WindowManager::Render()
 
 void WindowManager::Draw()
 {
-	//the logic for the canvas region
 	DrawCanvas();
-	//the logic for the settings region on the right
 	DrawSettings();
 	//need to rename it
 }

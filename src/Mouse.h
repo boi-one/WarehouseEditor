@@ -1,6 +1,9 @@
 #pragma once
 #include "imgui.h"
 
+/// <summary>
+/// A central place for all of the click events and positions of the mouse
+/// </summary>
 class Mouse
 {
 public:
