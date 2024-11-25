@@ -156,7 +156,7 @@ void WindowManager::DrawCanvas()
 	if (ImGui::IsMouseDown(1))
 		ImGui::SetWindowFocus("Canvas");
 
-	if (ImGui::IsKeyPressed(ImGuiKey_R)) //resets the camera to 0
+	if (ImGui::IsKeyPressed(ImGuiKey_R)) //resets the camera to default values
 	{
 		camera.position = ImVec2(0, 0);
 		camera.zoom = 1.0f;
@@ -181,12 +181,6 @@ void WindowManager::DrawCanvas()
 			edit = false;
 
 		}
-
-		/*for (Layer& l : LayerManager::allLayers)
-		{
-			l.UnselectAllConveyors();
-			Mouse::SelectCursorPosition = ImVec2(camera.position.x - 1000, camera.position.y);
-		}*/
 	}
 	if (ImGui::IsKeyPressed(ImGuiKey_Slash))
 	{
@@ -320,10 +314,11 @@ void WindowManager::Render()
 		grid.DrawGrid(draw_list, camera);
 	}
 
-	for (BridgeConveyor bc : LayerManager::allBridgeConveyors)
-		bc.DrawBridgeConveyor(draw_list, camera);
-
 	LayerManager::currentLayer->DrawNewLine(draw_list, Layer::newLineEnd, camera, focusedWindow);
+
+	for (BridgeConveyor bc : LayerManager::allBridgeConveyors)
+		bc.DrawBridgeConveyor(draw_list, camera, LayerManager::allLayers);
+
 
 	for (Layer l : LayerManager::allLayers)
 	{

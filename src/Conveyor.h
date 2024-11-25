@@ -53,10 +53,10 @@ public:
 	/// <summary>
 	/// draws the conveyor onto the screen
 	/// </summary>
-	/// <param name="color"></param>
-	/// <param name="thickness"></param>
-	/// <param name="mouseWorldPos"></param>
-	/// <param name="camera"></param>
+	/// <param name="color"> is  the color of the conveyor</param>
+	/// <param name="thickness"> is the thickness of the conveyor</param>
+	/// <param name="mouseWorldPos"> is the position of the mouse</param>
+	/// <param name="camera"> is used to convert to world position</param>
 	void Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera);
 	
 	/// <summary>
@@ -68,7 +68,7 @@ public:
 	{
 		if (path.size() != other.path.size())
 		{
-			std::cout << "not the same size" << std::endl;
+			//std::cout << "not the same path size" << std::endl;
 			return false;
 		}
 

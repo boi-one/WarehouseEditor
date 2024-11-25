@@ -304,30 +304,41 @@ point* ClosestPointInLayers(Camera& camera, ImVec2& position)
 
 void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
 {
-	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && !ImGui::IsKeyDown(ImGuiKey_LeftShift) && LayerManager::allLayers.size() > 1)
+	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && !ImGui::IsKeyDown(ImGuiKey_LeftShift) && LayerManager::allLayers.size() > 1 && LayerManager::currentLayer->selectedConveyor->selectedPoint)
 	{
-		BridgeConveyor& newBridge = LayerManager::allBridgeConveyors.emplace_back(BridgeConveyor());
+		BridgeConveyor newBridge;
 
-		newBridge.bridgePoint1 = LayerManager::currentLayer->selectedConveyor->selectedPoint;
+		std::cout << "new bridge created" << std::endl;
 
-		point& closest = *ClosestPointInLayers(camera, Mouse::liveMousePosition);
+		newBridge.conveyorIndex1 = Tools::FindInList(LayerManager::currentLayer->allConveyors, *LayerManager::currentLayer->selectedConveyor);
+		newBridge.pointIndex1 = Tools::FindInList(LayerManager::currentLayer->selectedConveyor->path, *LayerManager::currentLayer->selectedConveyor->selectedPoint);
+		newBridge.layerIndex1 = Tools::FindInList(LayerManager::allLayers, *LayerManager::currentLayer);
+		point* closest = ClosestPointInLayers(camera, Mouse::liveMousePosition);
 
 		int index = -1;
-		Conveyor* indexConveyor = 0;
-		for (Layer& l : LayerManager::allLayers)
+		int closestConveyorIndex = -1;
+		for (int layerIndex = 0; layerIndex < LayerManager::allLayers.size() - 1; layerIndex++)
 		{
+			Layer& l = LayerManager::allLayers[layerIndex];
+
 			for (Conveyor& c : l.allConveyors)
 			{
-				index = Tools::FindInList(c.path, closest);
-				if (index > 0 && indexConveyor)
-					indexConveyor = &l.allConveyors[index]; //TODO indexConveyor is always 0
+				index = Tools::FindInList(c.path, *closest);
+				closestConveyorIndex = Tools::FindInList(l.allConveyors, c);
+
+				if (index > -1)
+				{
+					newBridge.conveyorIndex2 = closestConveyorIndex;
+					newBridge.pointIndex2 = index;
+					newBridge.layerIndex2 = layerIndex;
+				}
 			}
 		}
-		if (indexConveyor)
-			LayerManager::currentLayer->selectedConveyor->connectedConveyors.emplace_back(indexConveyor);
-		newBridge.bridgePoint2 = &closest;
-		if (newBridge.bridgePoint2)
-			Layer::newLineEnd = newBridge.bridgePoint2->position;
+		if (newBridge.conveyorIndex2 > -1)
+		{
+			std::cout << "emplace back bridge" << std::endl;
+			LayerManager::allBridgeConveyors.emplace_back(newBridge);
+		}
 	}
 }
 
@@ -338,7 +349,7 @@ bool Layer::FindConnection(Camera& camera, ImVec2 newLineEnd)
 	ImVec2 position = Mouse::liveMousePosition;
 
 	if (!ImGui::IsKeyDown(ImGuiKey_LeftShift))
-	{ //! todo dit zorgt ervoor dat er een offset is met het connecten van 2 conveyors
+	{
 		if (!Settings::snapping)
 			Layer::newLineEnd = Mouse::liveMousePosition;
 		else
@@ -364,9 +375,7 @@ bool Layer::FindConnection(Camera& camera, ImVec2 newLineEnd)
 			Layer::newLineEnd = closest->position;
 		else
 			Layer::newLineEnd = Mouse::liveMousePosition;
-
 	}
-
 
 	if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 	{

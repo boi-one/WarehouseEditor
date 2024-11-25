@@ -47,4 +47,3 @@ void Conveyor::Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camer
 		p.Draw(color, camera, thickness);
 	}
 }
-

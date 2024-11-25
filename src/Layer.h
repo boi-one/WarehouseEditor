@@ -27,7 +27,7 @@ public:
 	}
 
 	/// <summary>
-	/// unselects and set all the bools to default for all of the conveyors in the layer and makes it possible the create a new conveyor
+	/// unselects and set all the bools to default for all of the conveyors in the layer and makes it possible to create a new conveyor
 	/// </summary>
 	void ClearSelection();
 
