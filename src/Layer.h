@@ -102,11 +102,13 @@ public:
 	bool FindConnection(Camera& camera, ImVec2 newLineEnd);
 
 	/// <summary>
-	/// WIP!!!!!!!
+	/// WIP!!!!!!! connects 2 conveyors to eachother on different layers
 	/// </summary>
 	/// <param name="camera"></param>
 	/// <param name="position"></param>
 	void CreateBridgePoint(Camera& camera, ImVec2& position);
+
+	friend void to_json(json& j, const Layer& l);
 };
 
 /// <summary>

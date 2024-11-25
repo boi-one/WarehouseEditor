@@ -3,6 +3,11 @@
 #include "imgui.h"
 #include "Camera.h"
 
+#include <fstream>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+
+
 /// <summary>
 /// The point is what a conveyor is made up of. each conveyor is just a list of points and the branches of the conveyors are points which are in the connections vector of the specific point.
 /// </summary>
@@ -25,4 +30,6 @@ public:
 	/// <param name="camera"> is used to convert to world position</param>
 	/// <param name="thickness"> is how thick the lines between the points are </param>
 	void Draw(const ImVec4& color, Camera& camera, const float thickness);
+
+	friend void to_json(json& j, const point& p);
 };

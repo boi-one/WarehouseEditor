@@ -1,6 +1,7 @@
 #include "Layer.h"
 #include "LayerManager.h"
 #include "Settings.h"
+#include "BridgeConveyor.h"
 
 bool selected;
 
@@ -276,6 +277,17 @@ bool Layer::EditConveyor(Camera& camera, ImVec2& position)
 	return true;
 }
 
+void to_json(json& j, const Layer& l)
+{
+	j = json
+	{
+		{"layerCount", l.layerCount},
+		{"id", l.id},
+		{"name", l.name},
+		{"allConveyors", l.allConveyors}
+	};
+}
+
 point* ClosestPointInLayers(Camera& camera, ImVec2& position)
 {
 	Conveyor* temp = 0;
@@ -337,7 +349,7 @@ void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
 		if (newBridge.conveyorIndex2 > -1)
 		{
 			std::cout << "emplace back bridge" << std::endl;
-			LayerManager::allBridgeConveyors.emplace_back(newBridge);
+			BridgeConveyor::allBridgeConveyors.emplace_back(newBridge);
 		}
 	}
 }

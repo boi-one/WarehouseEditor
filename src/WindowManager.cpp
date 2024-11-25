@@ -1,7 +1,7 @@
 #include "WindowManager.h"
 #include "Grid.h"
 #include "Settings.h"
-#include "WindowManager.h"
+#include "JsonSerialization.h"
 
 void WindowManager::DrawCanvas()
 {
@@ -212,6 +212,16 @@ void WindowManager::DrawSettings()
 
 	ImGui::Text("Application average\n%.3f ms/frame\n%.1f FPS\n", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
+	if (ImGui::Button("Save"))
+	{
+		JsonSerialization::Serialize(LayerManager::allLayers, BridgeConveyor::allBridgeConveyors);
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Load"))
+	{
+		JsonSerialization::Deserialize();
+	}
+	ImGui::SameLine();
 	if (ImGui::Button("Quit"))
 	{
 		Settings::appRunning = false;
@@ -316,7 +326,7 @@ void WindowManager::Render()
 
 	LayerManager::currentLayer->DrawNewLine(draw_list, Layer::newLineEnd, camera, focusedWindow);
 
-	for (BridgeConveyor bc : LayerManager::allBridgeConveyors)
+	for (BridgeConveyor& bc : BridgeConveyor::allBridgeConveyors)
 		bc.DrawBridgeConveyor(draw_list, camera, LayerManager::allLayers);
 
 

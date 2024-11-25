@@ -15,3 +15,16 @@ void BridgeConveyor::DrawBridgeConveyor(ImDrawList* draw_list, Camera& camera, s
 					   camera.ToWorldPosition(allLayers[layerIndex2].allConveyors[conveyorIndex2].path[pointIndex2].position), 
 						color, 20 * camera.zoom);
 }
+
+void to_json(json& j, const BridgeConveyor& bg)
+{
+	j = json
+	{
+		{"conveyorindex1", bg.conveyorIndex1},
+		{"conveyorindex2", bg.conveyorIndex2},
+		{"layerindex1", bg.layerIndex1},
+		{"layerindex2", bg.layerIndex2},
+		{"pointindex1", bg.pointIndex1},
+		{"pointindex2", bg.pointIndex2}
+	};
+}

@@ -8,8 +8,7 @@
 class BridgeConveyor
 {
 public:
-	static inline std::vector<BridgeConveyor> allBridgeConveyors;
-
+	inline static std::vector<BridgeConveyor> allBridgeConveyors;
 	int conveyorIndex1 = -1;
 	int conveyorIndex2 = -1;
 	int layerIndex1 = -1;
@@ -24,4 +23,6 @@ public:
 	/// <param name="draw_list"> is the way ImGui draws to windows, this is needed to display the conveyor</param>
 	/// <param name="camera"> is used to convert the points possitions to the world position so they actually stay still instead of move with the screen.</param>
 	void DrawBridgeConveyor(ImDrawList* draw_list, Camera& camera, std::vector<Layer>& allLayers);
+
+	friend void to_json(json& j, const BridgeConveyor& bg);
 };

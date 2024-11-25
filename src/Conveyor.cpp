@@ -47,3 +47,13 @@ void Conveyor::Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camer
 		p.Draw(color, camera, thickness);
 	}
 }
+
+void to_json(json& j, const Conveyor& c)
+{
+	j = json
+	{
+		{"id", c.id},
+		{"alltimeConveyorCount", c.alltimeConveyorCount},
+		{"path", c.path}
+	};
+}

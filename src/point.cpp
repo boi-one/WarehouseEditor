@@ -10,3 +10,12 @@ void point::Draw(const ImVec4& color, Camera& camera, const float thickness)
 			ImColor(color), thickness);
 	}
 }
+
+void to_json(json& j, const point& p)
+{
+	j = json
+	{
+		{"x", p.position.x}, {"y", p.position.y},
+		{"connections", p.connections}
+	};
+}

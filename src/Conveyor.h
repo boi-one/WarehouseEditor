@@ -17,7 +17,6 @@ public:
 	bool edit = false;
 	point* selectedPoint;
 	static inline bool createNewConveyor = true;
-	std::vector<Conveyor*> connectedConveyors;
 
 	Conveyor() = default;
 	Conveyor(int id)
@@ -59,6 +58,8 @@ public:
 	/// <param name="camera"> is used to convert to world position</param>
 	void Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera);
 	
+	friend void to_json(json& j, const Conveyor& c);
+
 	/// <summary>
 	/// used to compare two conveyors which eachother to check if they are the same
 	/// </summary>
@@ -81,5 +82,4 @@ public:
 		return selected == other.selected &&
 			path.size() == other.path.size();
 	}
-
 };
