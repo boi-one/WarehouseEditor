@@ -1,4 +1,5 @@
 #include "JsonSerialization.h"
+#include "LayerManager.h"
 
 void JsonSerialization::Serialize(std::vector<Layer>& allLayers, std::vector<BridgeConveyor>& allBridgeConveyors)
 {
@@ -25,7 +26,19 @@ void JsonSerialization::Serialize(std::vector<Layer>& allLayers, std::vector<Bri
 
 }
 
-void JsonSerialization::Deserialize()
+void JsonSerialization::Deserialize(std::string& filePath)
 {
-	std::cout << "load" << std::endl;
+	std::ifstream file(filePath);
+
+	if (file.is_open())
+	{
+		json data;
+		file >> data;
+
+		std::vector<Layer> allLayers = data.at("allLayers").get<std::vector<Layer>>();
+		LayerManager::allLayers = allLayers;
+		std::vector<BridgeConveyor> allBridgeConveyors = data.at("allBridgeConveyors").get < std::vector<BridgeConveyor>>();
+		LayerManager::allBridgeConveyors = allBridgeConveyors;
+	}
+
 }

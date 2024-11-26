@@ -42,7 +42,7 @@ public:
 	static point* FindClosestPointInWorld(std::vector<point>& list, ImVec2& origin, Camera& camera, float range);
 
 	void DrawConveyorHeader();
-	
+
 	/// <summary>
 	/// creates a new point for the specific conveyor selected or created
 	/// </summary>
@@ -57,8 +57,6 @@ public:
 	/// <param name="mouseWorldPos"> is the position of the mouse</param>
 	/// <param name="camera"> is used to convert to world position</param>
 	void Draw(ImVec4& color, float thickness, ImVec2& mouseWorldPos, Camera& camera);
-	
-	friend void to_json(json& j, const Conveyor& c);
 
 	/// <summary>
 	/// used to compare two conveyors which eachother to check if they are the same
@@ -75,11 +73,16 @@ public:
 
 		for (size_t i = 0; i < path.size(); i++)
 		{
-			if(!Tools::CompareImVec(path.at(i).position, other.path.at(i).position))
+			if (!Tools::CompareImVec(path.at(i).position, other.path.at(i).position))
 				return false;
 		}
 
 		return selected == other.selected &&
 			path.size() == other.path.size();
 	}
+
+	friend void to_json(json& j, const Conveyor& c);
 };
+
+
+void from_json(const json& j, Conveyor& c);

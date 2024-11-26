@@ -31,5 +31,10 @@ public:
 	/// <param name="thickness"> is how thick the lines between the points are </param>
 	void Draw(const ImVec4& color, Camera& camera, const float thickness);
 
+	static std::vector<point> deserializePointConnections(const json& j);
+	
 	friend void to_json(json& j, const point& p);
 };
+
+
+void from_json(const json& j, point& p);

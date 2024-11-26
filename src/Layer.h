@@ -110,6 +110,10 @@ public:
 
 	friend void to_json(json& j, const Layer& l);
 };
+//nlohmann json to_json needs to be INSIDE of the class and be a friend function (inside the class you dont need the class and :: when it is a friend)
+// from_json needs to be outside the class and the json parameter HAS to be const
+
+void from_json(const json& j, Layer& l);
 
 /// <summary>
 /// Finds the closest point in all of the layers

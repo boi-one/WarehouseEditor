@@ -196,7 +196,6 @@ Conveyor* Layer::ReturnClosestConveyor(Camera& camera, ImVec2& origin, Conveyor&
 				if (&allConveyors[c] == &selected) continue;
 				closestConveyorIndex = c;
 				closestPointIndex = p;
-				std::cout << "World Position: (" << position.x << ", " << position.y << ") " << "Distance to origin: " << distance << std::endl;
 			}
 		}
 	}
@@ -288,6 +287,14 @@ void to_json(json& j, const Layer& l)
 	};
 }
 
+void from_json(const json& j, Layer& l)
+{
+	j.at("allConveyors").get_to(l.allConveyors);
+	l.id = j.at("id").get<int>();
+	l.layerCount = j.at("layerCount").get<int>();
+	l.name = j.at("name").get<std::string>();
+}
+
 point* ClosestPointInLayers(Camera& camera, ImVec2& position)
 {
 	Conveyor* temp = 0;
@@ -315,12 +322,11 @@ point* ClosestPointInLayers(Camera& camera, ImVec2& position)
 }
 
 void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
-{
+{ //DITIS 1WAY?????????? FIXXXXXXXXXXXXX
+
 	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && !ImGui::IsKeyDown(ImGuiKey_LeftShift) && LayerManager::allLayers.size() > 1 && LayerManager::currentLayer->selectedConveyor->selectedPoint)
 	{
 		BridgeConveyor newBridge;
-
-		std::cout << "new bridge created" << std::endl;
 
 		newBridge.conveyorIndex1 = Tools::FindInList(LayerManager::currentLayer->allConveyors, *LayerManager::currentLayer->selectedConveyor);
 		newBridge.pointIndex1 = Tools::FindInList(LayerManager::currentLayer->selectedConveyor->path, *LayerManager::currentLayer->selectedConveyor->selectedPoint);
@@ -329,7 +335,7 @@ void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
 
 		int index = -1;
 		int closestConveyorIndex = -1;
-		for (int layerIndex = 0; layerIndex < LayerManager::allLayers.size() - 1; layerIndex++)
+		for (int layerIndex = 0; layerIndex < LayerManager::allLayers.size(); layerIndex++)
 		{
 			Layer& l = LayerManager::allLayers[layerIndex];
 
@@ -343,13 +349,13 @@ void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
 					newBridge.conveyorIndex2 = closestConveyorIndex;
 					newBridge.pointIndex2 = index;
 					newBridge.layerIndex2 = layerIndex;
+					break;
 				}
 			}
 		}
 		if (newBridge.conveyorIndex2 > -1)
 		{
-			std::cout << "emplace back bridge" << std::endl;
-			BridgeConveyor::allBridgeConveyors.emplace_back(newBridge);
+			LayerManager::allBridgeConveyors.emplace_back(newBridge);
 		}
 	}
 }

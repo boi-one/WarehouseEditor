@@ -12,5 +12,5 @@ class JsonSerialization
 public:
 
 	static void Serialize(std::vector<Layer>& allLayers, std::vector<BridgeConveyor>& allBridgeConveyors);
-	static void Deserialize();
+	static void Deserialize(std::string& filePath);
 };

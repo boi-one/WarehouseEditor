@@ -214,12 +214,20 @@ void WindowManager::DrawSettings()
 
 	if (ImGui::Button("Save"))
 	{
-		JsonSerialization::Serialize(LayerManager::allLayers, BridgeConveyor::allBridgeConveyors);
+		JsonSerialization::Serialize(LayerManager::allLayers, LayerManager::allBridgeConveyors);
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Load"))
 	{
-		JsonSerialization::Deserialize();
+		std::string input = "save.json";
+		JsonSerialization::Deserialize(input);
+		if (LayerManager::allLayers.size() > 0)
+		{
+			std::cout << "set current layer" << std::endl;
+			LayerManager::currentLayer = &LayerManager::allLayers[0];
+			LayerManager::currentLayer->selected = true;
+			LayerManager::currentLayer->ClearSelection();
+		}
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Quit"))
@@ -326,7 +334,7 @@ void WindowManager::Render()
 
 	LayerManager::currentLayer->DrawNewLine(draw_list, Layer::newLineEnd, camera, focusedWindow);
 
-	for (BridgeConveyor& bc : BridgeConveyor::allBridgeConveyors)
+	for (BridgeConveyor& bc : LayerManager::allBridgeConveyors)
 		bc.DrawBridgeConveyor(draw_list, camera, LayerManager::allLayers);
 
 

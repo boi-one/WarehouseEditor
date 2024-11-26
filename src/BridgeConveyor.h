@@ -1,3 +1,4 @@
+#pragma once
 #include "point.h"
 #include "Conveyor.h"
 #include "Layer.h" 
@@ -8,7 +9,6 @@
 class BridgeConveyor
 {
 public:
-	inline static std::vector<BridgeConveyor> allBridgeConveyors;
 	int conveyorIndex1 = -1;
 	int conveyorIndex2 = -1;
 	int layerIndex1 = -1;
@@ -26,3 +26,5 @@ public:
 
 	friend void to_json(json& j, const BridgeConveyor& bg);
 };
+
+void from_json(const json& j, BridgeConveyor& bg);

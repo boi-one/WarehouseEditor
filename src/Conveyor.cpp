@@ -57,3 +57,10 @@ void to_json(json& j, const Conveyor& c)
 		{"path", c.path}
 	};
 }
+
+void from_json(const json& j, Conveyor& c)
+{
+	c.alltimeConveyorCount = j.at("alltimeConveyorCount").get<int>();
+	c.id = j.at("id").get<int>();
+	j.at("path").get_to(c.path);
+}

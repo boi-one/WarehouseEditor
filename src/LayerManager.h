@@ -1,4 +1,5 @@
 #include "Layer.h"
+#include "BridgeConveyor.h"
 
 /// <summary>
 /// The LayerManager keeps track and manages all of the layers
@@ -7,6 +8,7 @@ class LayerManager
 {
 public:
 	inline static std::vector<Layer> allLayers;
+	inline static std::vector<BridgeConveyor> allBridgeConveyors;
 	inline static Layer* currentLayer;
 public:
 	/// <summary>
@@ -25,4 +27,9 @@ public:
 	/// Adds a new layer
 	/// </summary>
 	static void AddLayer();
+
+	friend void to_json(json& j, const LayerManager& lm);
 };
+
+void from_json(const json& j, LayerManager& lm);
+

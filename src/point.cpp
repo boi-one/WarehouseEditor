@@ -19,3 +19,14 @@ void to_json(json& j, const point& p)
 		{"connections", p.connections}
 	};
 }
+
+void from_json(const json& j, point& p)
+{
+	p.position.x = j.at("x").get<float>();
+	p.position.y = j.at("y").get<float>();
+
+	//deserialize the connections vector
+	if (j.contains("connections")) {
+		j.at("connections").get_to(p.connections);
+	}
+}

@@ -112,7 +112,7 @@ void LayerManager::ManageLayers(Camera& camera, std::vector<int>& deletionList)
 			{
 				//strncpy(loopedLayer.name.data(), (char*)&input, sizeof(input));
 				ImGui::InputText("Enter layer name", input, IM_ARRAYSIZE(input));
-				std::cout << input << std::endl;
+				//! todo: fix the naming so you can actually rename layers
 				if (ImGui::Button("Apply"))
 				{
 					loopedLayer.name = input;
@@ -144,4 +144,14 @@ void LayerManager::AddLayer()
 	allLayers.push_back(layer);
 	if (allLayers.size() < 2)
 		allLayers.at(0).selected = true;
+}
+
+void to_json(json& j, const LayerManager& lm)
+{
+	j = json{ "allBridgeConveyors", lm.allBridgeConveyors };
+}
+
+void from_json(const json& j, LayerManager& lm)
+{
+	j.at("allBridgeConveyors").get_to(lm.allBridgeConveyors);
 }

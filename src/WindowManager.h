@@ -3,9 +3,6 @@
 #include "LayerManager.h"
 #include "Grid.h"
 
-using std::cout;
-using std::endl;
-
 /// <summary>
 /// The class which needs the most refactoring. for now it is just a mess but the goal for this class is to divide all the ImGui code for the different windows. 
 /// for example the settings and the canvas window.
