@@ -32,7 +32,7 @@ An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGu
     - [x] delete layers
     - [x] reorder layers
         - [ ] drag and drop
-- [ ] saving and loading to json
+- [x] saving and loading to json
 - [ ] convenience
     - [x] 2d grid
     - [x] snap to grid
