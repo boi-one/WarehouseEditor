@@ -39,4 +39,4 @@ An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGu
     ###### after refactor:
     - [ ] copy paste
     - [ ] undo  redo
-- [ ] create a 3d view in pure opengl
+- [ ] create a 3d view in pure opengl: [repository link](https://github.com/boi-one/WarehouseEditor3D)
