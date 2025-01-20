@@ -322,7 +322,7 @@ point* ClosestPointInLayers(Camera& camera, ImVec2& position)
 }
 
 void Layer::CreateBridgePoint(Camera& camera, ImVec2& position)
-{ //DITIS 1WAY?????????? FIXXXXXXXXXXXXX
+{
 
 	if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && !ImGui::IsKeyDown(ImGuiKey_LeftShift) && LayerManager::allLayers.size() > 1 && LayerManager::currentLayer->selectedConveyor->selectedPoint)
 	{
