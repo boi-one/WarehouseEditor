@@ -1,6 +1,6 @@
 ## Warehouse Editor
 
-An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGui [~~and OpenGL~~](https://github.com/boi-one/WarehouseEditor3D/tree/3d)
+An editor to make layouts for conveyor belts in a warehouse. Made with C++, ImGui [~~and OpenGL~~](https://github.com/boi-one/WarehouseEditor3D)
 
 ---
 
